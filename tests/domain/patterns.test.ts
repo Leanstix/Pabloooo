@@ -55,3 +55,11 @@ it('counts actual confirmed links and keeps archived category history available'
   state = reduceFinance(state, { type: 'category.archive', id: 'category-feeding' }, now);
   expect(categoryFrequency(state, 'category-feeding', range)).toEqual({ count: 2, activeDays: 2, averageKobo: 300, averageGapDays: 3, recurringCount: 1 });
 });
+
+it('rounds average transaction size without floating-point currency loss', () => {
+  let state = add(fresh(), { amountKobo: Number.MAX_SAFE_INTEGER - 2 });
+  state = add(state, { amountKobo: 2 });
+  expect(categoryFrequency(state, 'category-feeding', range).averageKobo).toBe(4503599627370496);
+  const income = add(fresh(), { kind: 'income', categoryId: 'category-salary', amountKobo: 123 });
+  expect(categoryFrequency(income, 'category-salary', range)).toMatchObject({ count: 1, activeDays: 1, averageKobo: 123 });
+});
