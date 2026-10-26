@@ -1,4 +1,4 @@
-import { reduceFinance } from '../domain';
+import { reduceFinance, validateFinanceState } from '../domain';
 import type { AppAction, Settings } from '../domain/types';
 import type { FinanceEngine } from './engine';
 import { errorMessage } from './errors';
@@ -8,9 +8,9 @@ export type ReminderConfigurator = (enabled: boolean, settings: Settings) => Pro
 /** Keep Android side effects and database mutations in the same ordered operation. */
 export function createActionService(engine: FinanceEngine, reminders: ReminderConfigurator) {
   let queue: Promise<void> = Promise.resolve();
-  function serial(task: () => Promise<void>): Promise<void> {
+  function serial<T>(task: () => Promise<T>): Promise<T> {
     const result = queue.then(task);
-    queue = result.catch(() => undefined);
+    queue = result.then(() => undefined, () => undefined);
     return result;
   }
   async function rollback(previous: Settings, original: unknown): Promise<never> {
@@ -23,7 +23,18 @@ export function createActionService(engine: FinanceEngine, reminders: ReminderCo
   return {
     reconcileReminders: (): Promise<void> => serial(async () => {
       const settings = engine.getSnapshot().state.settings;
-      await reminders(settings.remindersEnabled, settings);
+      try { await reminders(settings.remindersEnabled, settings); }
+      catch (error) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'notification-permission') {
+          await reminders(false, settings);
+          await engine.dispatch({ type: 'settings.update', value: { remindersEnabled: false } });
+        }
+        throw error;
+      }
+    }),
+    readState: () => serial(async () => {
+      await engine.whenIdle();
+      return engine.getSnapshot().state;
     }),
     dispatch: (action: AppAction): Promise<void> => serial(async () => {
       const previous = engine.getSnapshot().state;
@@ -38,6 +49,7 @@ export function createActionService(engine: FinanceEngine, reminders: ReminderCo
       } else await engine.dispatch(action);
     }),
     restore: (input: unknown): Promise<void> => serial(async () => {
+      validateFinanceState(input);
       const previous = engine.getSnapshot().state.settings;
       await reminders(false, previous);
       try { await engine.restore(input); }
