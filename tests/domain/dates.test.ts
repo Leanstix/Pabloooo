@@ -41,3 +41,9 @@ it('uses the actual clamped start date as the budget cycle key', () => {
   expect(cycleKey('2026-03-31', 31)).toBe('2026-03-31');
   expect(cycleRange('2026-02-28', 31)).toEqual({ start: new Date(2026, 1, 28).toISOString(), end: new Date(2026, 2, 31).toISOString() });
 });
+
+it('rejects invalid cycle starts and dates before generating a range', () => {
+  for (const day of [0, 32, -1, 1.5, NaN]) expect(() => cycleRange('2026-10-26', day)).toThrow();
+  expect(() => cycleRange('2026-02-30', 1)).toThrow();
+  expect(cycleKey('2026-01-01', 15)).toBe('2025-12-15');
+});
