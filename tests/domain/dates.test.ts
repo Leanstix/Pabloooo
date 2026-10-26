@@ -47,3 +47,11 @@ it('rejects invalid cycle starts and dates before generating a range', () => {
   expect(() => cycleRange('2026-02-30', 1)).toThrow();
   expect(cycleKey('2026-01-01', 15)).toBe('2025-12-15');
 });
+
+it('creates Monday weeks and complete month quarter and year ranges', () => {
+  const iso = (y: number, m: number, d: number) => new Date(y, m - 1, d).toISOString();
+  expect(reportRange('week', '2026-11-01')).toEqual({ start: iso(2026, 10, 26), end: iso(2026, 11, 2) });
+  expect(reportRange('month', '2024-02-29')).toEqual({ start: iso(2024, 2, 1), end: iso(2024, 3, 1) });
+  expect(reportRange('quarter', '2026-12-15')).toEqual({ start: iso(2026, 10, 1), end: iso(2027, 1, 1) });
+  expect(reportRange('year', '2026-10-26')).toEqual({ start: iso(2026, 1, 1), end: iso(2027, 1, 1) });
+});
