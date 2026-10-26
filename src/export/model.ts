@@ -56,5 +56,5 @@ export function categoryLabels(id: string, categories: Category[]): { parent: st
     if (!item) break;
     names.unshift(item.name); parent = item.parentId;
   }
-  return { parent: names[0], child: names.length > 1 ? names.slice(1).join(' / ') : '', full: names.join(' / ') };
+  return { parent: names[0] ?? category.name, child: names.length > 1 ? names.slice(1).join(' / ') : '', full: names.join(' / ') };
 }
