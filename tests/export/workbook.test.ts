@@ -79,4 +79,19 @@ describe('offline XLSX export', () => {
     expect(workbook.getWorksheet('Transactions')!.rowCount).toBe(4);
     expect(strFromU8(files['xl/worksheets/sheet1.xml']!)).not.toMatch(/NaN|Infinity|#DIV/);
   });
+  it('shows direct category allocations and percentage of recorded income', async () => {
+    const { workbook } = await read();
+    const categories = workbook.getWorksheet('Categories')!;
+    expect(categories.getCell('A6').value).toBe('Food & drink');
+    expect(categories.getCell('B6').value).toBe('Dining');
+    expect(categories.getCell('D6').value).toBe(1200.55);
+    expect(categories.getCell('E6').value).toEqual({ formula: 'D6/Overview!$B$5', result: 0.0120055 });
+    expect(categories.getCell('D7').value).toBe(999.45);
+    expect(categories.rowCount).toBe(7);
+  });
+  it('leaves category share empty when there is no recorded income', async () => {
+    const state = fixture(); state.transactions = state.transactions.filter(tx => tx.kind === 'expense');
+    const { workbook } = await read(state);
+    expect(workbook.getWorksheet('Categories')!.getCell('E5').value).toBe('');
+  });
 });
