@@ -105,3 +105,15 @@ it('stores one expense-category budget per cycle and rejects mismatched keys', (
   expect(() => apply(state, { type: 'budget.save', value: { ...value, categoryId: 'category-salary' } })).toThrow();
   expect(apply(state, { type: 'budget.delete', id: 'b1' }).budgets).toEqual([]);
 });
+
+it('creates one occurrence and advances its due date once under replay', () => {
+  const state = apply(seed(), { type: 'recurring.save', value: { id: 'r1', name: 'Lunch subscription', kind: 'expense', amountKobo: 1000, categoryId: 'category-feeding', frequency: 'monthly', nextDueDate: '2026-10-26', active: true } });
+  expect(state.transactions).toHaveLength(0);
+  const action = { type: 'recurring.confirm' as const, id: 'r1', transactionId: 'confirmed', occurredAt: now };
+  const next = apply(state, action);
+  expect(next.transactions).toHaveLength(1);
+  expect(next.transactions[0]).toMatchObject({ recurringId: 'r1', note: 'Lunch subscription', amountKobo: 1000 });
+  expect(next.recurringRules[0]?.nextDueDate).toBe('2026-11-26');
+  expect(apply(next, action)).toBe(next);
+  expect(next.revision).toBe(state.revision + 1);
+});
