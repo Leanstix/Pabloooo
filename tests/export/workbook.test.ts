@@ -92,7 +92,7 @@ describe('offline XLSX export', () => {
   it('leaves category share empty when there is no recorded income', async () => {
     const state = fixture(); state.transactions = state.transactions.filter(tx => tx.kind === 'expense');
     const { workbook } = await read(state);
-    expect(workbook.getWorksheet('Categories')!.getCell('E5').value).toBe('');
+    expect(workbook.getWorksheet('Categories')!.getCell('E5').value).toBeNull();
   });
   it('exports actual weekly configuration without inventing monthly payments', async () => {
     const state = fixture(); state.transactions[1]!.recurringId = 'rule-1';
