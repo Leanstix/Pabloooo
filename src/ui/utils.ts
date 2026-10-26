@@ -1,7 +1,8 @@
 import { Alert } from 'react-native';
+import { randomUUID } from 'expo-crypto';
 export const localDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 export const today = () => localDate(new Date());
-export const uid = () => `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+export const uid = () => randomUUID();
 export function confirmDelete(title: string, action: () => void, message = 'This can’t be undone.') {
   Alert.alert(title, message, [{ text: 'Keep', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: action }]);
 }
