@@ -94,4 +94,14 @@ describe('offline XLSX export', () => {
     const { workbook } = await read(state);
     expect(workbook.getWorksheet('Categories')!.getCell('E5').value).toBe('');
   });
+  it('exports actual weekly configuration without inventing monthly payments', async () => {
+    const state = fixture(); state.transactions[1]!.recurringId = 'rule-1';
+    const { workbook } = await read(state);
+    const recurring = workbook.getWorksheet('Recurring')!;
+    expect(recurring.getCell('C5').value).toBe(500);
+    expect(recurring.getCell('D5').value).toBe('weekly');
+    expect(recurring.getCell('H5').value).toBe(1);
+    expect(recurring.getCell('I5').value).toBe(1200.55);
+    expect(workbook.getWorksheet('Overview')!.getCell('B6').result).toBe(2200);
+  });
 });
