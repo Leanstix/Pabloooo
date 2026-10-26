@@ -72,3 +72,11 @@ it('plots complete calendar month buckets for quarterly and yearly reports', () 
   ]);
   expect(chartSeries(state, reportRange('year', '2026-10-26'), 'month')).toHaveLength(12);
 });
+
+it('counts child expenses against the parent budget and preserves negative remaining', () => {
+  let state = reduceFinance(seed(), { type: 'category.save', value: { id: 'snacks', name: 'Snacks', kind: 'expense', parentId: 'category-feeding', color: '#123456', icon: 'cafe', archived: false } }, now);
+  state = reduceFinance(state, { type: 'budget.save', value: { id: 'b1', categoryId: 'category-feeding', limitKobo: 10000, cycleKey: '2026-10-01' } }, now);
+  state = add(state, { categoryId: 'snacks', amountKobo: 15000 });
+  expect(budgetProgress(state, '2026-10-26')).toEqual([{ id: 'b1', categoryId: 'category-feeding', limitKobo: 10000, spentKobo: 15000, remainingKobo: -5000, percent: 150 }]);
+  expect(budgetProgress(state, '2026-11-01')).toEqual([]);
+});
