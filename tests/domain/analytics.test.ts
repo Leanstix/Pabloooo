@@ -22,3 +22,8 @@ it('reconciles income expenses balance and count after soft deletion and restore
   state = reduceFinance(state, { type: 'transaction.restore', id: 't0' }, now);
   expect(summarize(state, range).expenseKobo).toBe(50000);
 });
+
+it('includes the first local midnight and excludes the next period midnight', () => {
+  const state = add(add(seed(), { occurredAt: new Date(2026, 9, 1).toISOString(), amountKobo: 123 }), { occurredAt: new Date(2026, 10, 1).toISOString(), amountKobo: 456 });
+  expect(summarize(state, range)).toEqual({ incomeKobo: 0, expenseKobo: 123, balanceKobo: -123, count: 1 });
+});
