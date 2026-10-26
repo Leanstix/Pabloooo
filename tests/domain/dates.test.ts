@@ -1,3 +1,6 @@
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { transpileModule, ModuleKind, ScriptTarget } from 'typescript';
 import { describe, expect, it } from 'vitest';
 import { isDate, isTimestamp, addDays, addMonths, nextDueDate, cycleRange, cycleKey, reportRange, inclusiveRange, inRange } from '../../src/domain/dates';
 
@@ -65,15 +68,15 @@ it('includes the entire selected last day without including the next midnight', 
 });
 
 it('counts calendar days across spring and fall DST without fixed 24-hour assumptions', () => {
-  const previous = process.env.TZ;
-  process.env.TZ = 'America/New_York';
-  try {
-    expect(addDays('2026-03-08', 1)).toBe('2026-03-09');
-    expect(addDays('2026-11-01', 1)).toBe('2026-11-02');
-    const spring = reportRange('day', '2026-03-08');
-    const fall = reportRange('day', '2026-11-01');
-    expect(Date.parse(spring.end) - Date.parse(spring.start)).toBe(23 * 3600000);
-    expect(Date.parse(fall.end) - Date.parse(fall.start)).toBe(25 * 3600000);
-    expect(cycleKey('2026-03-09T02:00:00Z', 9)).toBe('2026-02-09');
-  } finally { if (previous === undefined) delete process.env.TZ; else process.env.TZ = previous; }
+  // Node worker threads cannot reliably change their timezone after startup.
+  const source = readFileSync(new URL('../../src/domain/dates.ts', import.meta.url), 'utf8');
+  const code = transpileModule(source, { compilerOptions: { module: ModuleKind.CommonJS, target: ScriptTarget.ES2022 } }).outputText;
+  const probe = `const api={};new Function('exports',${JSON.stringify(code)})(api);
+    const spring=api.reportRange('day','2026-03-08');
+    const fall=api.reportRange('day','2026-11-01');
+    console.log(JSON.stringify({spring:Date.parse(spring.end)-Date.parse(spring.start),
+      fall:Date.parse(fall.end)-Date.parse(fall.start),
+      next:api.addDays('2026-03-08',1), key:api.cycleKey('2026-03-09T02:00:00Z',9)}));`;
+  const result = JSON.parse(execFileSync(process.execPath, ['-e', probe], { env: { ...process.env, TZ: 'America/New_York' }, encoding: 'utf8' }));
+  expect(result).toEqual({ spring: 23 * 3600000, fall: 25 * 3600000, next: '2026-03-09', key: '2026-02-09' });
 });
