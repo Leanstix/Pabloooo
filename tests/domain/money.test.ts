@@ -1,0 +1,55 @@
+import { describe, expect, it } from 'vitest';
+import { parseMoney, formatMoney, sumKobo, assertKobo } from '../../src/domain/money';
+
+describe('integer kobo money', () => {
+  it('parses naira exactly and formats kobo without floating currency arithmetic', () => {
+    expect(parseMoney('0.29')).toBe(29);
+    expect(parseMoney('₦1,234,567.89')).toBe(123456789);
+    expect(parseMoney('NGN 50.5')).toBe(5050);
+    expect(formatMoney(123456789)).toBe('₦1,234,567.89');
+    expect(formatMoney(-1)).toBe('-₦0.01');
+  });
+});
+
+it('rejects misplaced commas exponent notation signs and more than two decimals', () => {
+  for (const input of [
+    '',
+    ' ',
+    '-1',
+    '+1',
+    '1e3',
+    'Infinity',
+    'NaN',
+    '1.001',
+    '1,00',
+    '12,34,567',
+    '.50',
+    '50.',
+    '1 000',
+    '₦',
+  ]) {
+    expect(parseMoney(input), input).toBeNull();
+  }
+});
+
+it('accepts the exact safe integer boundary and rejects the next kobo', () => {
+  expect(parseMoney('90,071,992,547,409.91')).toBe(Number.MAX_SAFE_INTEGER);
+  expect(parseMoney('90,071,992,547,409.92')).toBeNull();
+  expect(parseMoney('9999999999999999999999999999999999999')).toBeNull();
+  expect(formatMoney(Number.MAX_SAFE_INTEGER)).toBe('₦90,071,992,547,409.91');
+});
+
+it('rejects overflow during summation but allows safe cancellation', () => {
+  expect(sumKobo([Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER, 1])).toBe(1);
+  expect(() => sumKobo([Number.MAX_SAFE_INTEGER, 1])).toThrow(/safe range/);
+  expect(() => sumKobo([Number.MIN_SAFE_INTEGER, -1])).toThrow(/safe range/);
+  expect(() => sumKobo([0.1, 0.2])).toThrow();
+});
+
+it('allows zero settings while requiring positive transaction amounts', () => {
+  expect(() => assertKobo(0)).not.toThrow();
+  expect(() => assertKobo(0, 'Transaction', false)).toThrow(/positive/);
+  for (const value of [-1, 1.1, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1, '100', null])
+    expect(() => assertKobo(value)).toThrow();
+  expect(formatMoney(0)).toBe('₦0.00');
+});

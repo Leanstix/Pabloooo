@@ -1,0 +1,13 @@
+node_modules
+.expo
+dist
+android
+ios
+coverage
+test-results
+playwright-report
+package-lock.json
+*.png
+*.kt
+*.gradle
+*.xml
