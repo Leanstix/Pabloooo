@@ -36,3 +36,10 @@ it('rolls subcategory spending into its parent and uses actual income for percen
   expect(rows.some(row => row.categoryId === 'snacks')).toBe(false);
   expect(rows.filter(row => row.kind === 'expense').reduce((sum, row) => sum + row.amountKobo, 0)).toBe(summarize(state, range).expenseKobo);
 });
+
+it('keeps historical archived categories visible and never divides by zero income', () => {
+  let state = add(seed());
+  state = reduceFinance(state, { type: 'category.archive', id: 'category-feeding' }, now);
+  expect(categoryBreakdown(state, range).find(row => row.categoryId === 'category-feeding')).toMatchObject({ amountKobo: 50000, percentOfIncome: null });
+  expect(summarize(state, range).expenseKobo).toBe(50000);
+});
