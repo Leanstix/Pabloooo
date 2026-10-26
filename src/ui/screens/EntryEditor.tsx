@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import type { AppController } from '../../app/contracts';
 import type { EntryKind, Transaction } from '../../domain/types';
@@ -10,14 +10,14 @@ import { Button } from '../components/Button';
 import { Text } from '../components/Text';
 import { CategoryPicker } from '../components/CategoryPicker';
 import { useTask } from '../hooks/useTask';
-import { confirmDelete, today, uid, validDate } from '../utils';
+import { confirmDelete, localDate, today, uid, validDate } from '../utils';
 import { useTheme } from '../theme/Theme';
 export interface EntryDraft { kind?: EntryKind; amount?: string; transaction?: Transaction }
-export function EntryEditor({ controller, draft, onClose }: { controller: AppController; draft: EntryDraft | null; onClose: () => void }) {
+export function EntryEditor({ controller, draft, onClose }: { controller: AppController; draft: EntryDraft; onClose: () => void }) {
   const { colors } = useTheme(); const task = useTask();
-  const [kind, setKind] = useState<EntryKind>('expense'); const [amount, setAmount] = useState('');
-  const [categoryId, setCategory] = useState(''); const [note, setNote] = useState(''); const [merchant, setMerchant] = useState(''); const [date, setDate] = useState(today()); const [time, setTime] = useState('12:00');
-  useEffect(() => { if (!draft) return; const tx = draft.transaction; setKind(tx?.kind || draft.kind || 'expense'); setAmount(tx ? (tx.amountKobo / 100).toFixed(2) : draft.amount || ''); setCategory(tx?.categoryId || ''); setNote(tx?.note || ''); setMerchant(tx?.merchant || ''); setDate(tx?.occurredAt.slice(0, 10) || today()); setTime(tx ? new Date(tx.occurredAt).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5)); task.setError(''); }, [draft]);
+  const tx = draft.transaction;
+  const [kind, setKind] = useState<EntryKind>(tx?.kind || draft.kind || 'expense'); const [amount, setAmount] = useState(tx ? (tx.amountKobo / 100).toFixed(2) : draft.amount || '');
+  const [categoryId, setCategory] = useState(tx?.categoryId || ''); const [note, setNote] = useState(tx?.note || ''); const [merchant, setMerchant] = useState(tx?.merchant || ''); const [date, setDate] = useState(tx ? localDate(new Date(tx.occurredAt)) : today()); const [time, setTime] = useState(new Date(tx?.occurredAt || Date.now()).toTimeString().slice(0, 5));
   const suggested = suggestCategory(controller.state, { kind, note, merchant });
   function save() {
     const amountKobo = parseMoney(amount);
