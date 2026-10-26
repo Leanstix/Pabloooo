@@ -105,3 +105,13 @@ it('uses normalized merchant history and frequency before recency', () => {
   expect(suggestCategory(state, { note: '', merchant: 'Corner Shop', kind: 'income' })).toBeNull();
   expect(suggestCategory(state, { note: '', merchant: '', kind: 'expense' })).toBeNull();
 });
+
+it('uses recent note matches and excludes deleted or archived history', () => {
+  let state = add(add(seed(), { id: 'old', note: 'Coffee', merchant: '', categoryId: 'category-feeding', occurredAt: '2026-10-01' }), { id: 'recent', note: 'coffee', merchant: '', categoryId: 'category-pleasure', occurredAt: '2026-10-26' });
+  const query = { note: '  COFFEE ', merchant: '', kind: 'expense' as const };
+  expect(suggestCategory(state, query)).toBe('category-pleasure');
+  state = reduceFinance(state, { type: 'transaction.delete', id: 'recent' }, now);
+  expect(suggestCategory(state, query)).toBe('category-feeding');
+  state = reduceFinance(state, { type: 'category.archive', id: 'category-feeding' }, now);
+  expect(suggestCategory(state, query)).toBeNull();
+});
