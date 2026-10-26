@@ -63,3 +63,11 @@ it('rounds average transaction size without floating-point currency loss', () =>
   const income = add(fresh(), { kind: 'income', categoryId: 'category-salary', amountKobo: 123 });
   expect(categoryFrequency(income, 'category-salary', range)).toMatchObject({ count: 1, activeDays: 1, averageKobo: 123 });
 });
+
+it('averages distinct calendar day gaps even with unsorted repeated entries', () => {
+  let state = add(fresh(), { occurredAt: '2026-10-06' });
+  state = add(state, { occurredAt: '2026-10-01' });
+  state = add(state, { occurredAt: '2026-10-02' });
+  state = add(state, { occurredAt: '2026-10-02' });
+  expect(categoryFrequency(state, 'category-feeding', range)).toMatchObject({ count: 4, activeDays: 3, averageGapDays: 2.5 });
+});
