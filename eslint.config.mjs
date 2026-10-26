@@ -4,6 +4,7 @@ import hooks from 'eslint-plugin-react-hooks';
 export default tseslint.config(
   { ignores: ['node_modules/**', 'coverage/**', 'dist/**', 'android/**', 'ios/**'] },
   ...tseslint.configs.recommended,
+  { files: ['plugins/**/*.js'], rules: { '@typescript-eslint/no-require-imports': 'off' } },
   {
     files: ['**/*.{ts,tsx}'],
     plugins: { 'react-hooks': hooks },
