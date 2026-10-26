@@ -163,3 +163,14 @@ it('updates cycle and planning settings while enforcing valid reminder times', (
   expect(() => apply(state, { type: 'settings.update', value: { morningTime: '24:00' } })).toThrow();
   expect(() => apply(state, { type: 'settings.update', value: { eveningTime: '9:00' } })).toThrow();
 });
+
+it('reports missing IDs for delete restore and archive commands', () => {
+  const state = seed();
+  const actions: AppAction[] = [
+    { type: 'transaction.delete', id: 'missing' }, { type: 'transaction.restore', id: 'missing' },
+    { type: 'category.archive', id: 'missing' }, { type: 'budget.delete', id: 'missing' },
+    { type: 'recurring.delete', id: 'missing' }, { type: 'goal.delete', id: 'missing' },
+  ];
+  for (const action of actions) expect(() => apply(state, action)).toThrow(/does not exist/);
+  expect(state.revision).toBe(0);
+});
