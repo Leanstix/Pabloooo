@@ -62,3 +62,13 @@ it('groups a daily report by local clock hour including empty hours', () => {
   expect(points.find(row => row.key === '2026-10-26T12:00')?.expenseKobo).toBe(50000);
   expect(points.reduce((sum, row) => sum + row.expenseKobo, 0)).toBe(50000);
 });
+
+it('plots complete calendar month buckets for quarterly and yearly reports', () => {
+  const state = add(add(seed(), { occurredAt: '2026-11-01', amountKobo: 10000 }), { occurredAt: '2026-12-31', amountKobo: 20000 });
+  expect(chartSeries(state, reportRange('quarter', '2026-12-10'), 'month')).toEqual([
+    { key: '2026-10', incomeKobo: 0, expenseKobo: 0 },
+    { key: '2026-11', incomeKobo: 0, expenseKobo: 10000 },
+    { key: '2026-12', incomeKobo: 0, expenseKobo: 20000 },
+  ]);
+  expect(chartSeries(state, reportRange('year', '2026-10-26'), 'month')).toHaveLength(12);
+});
