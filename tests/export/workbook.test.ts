@@ -39,4 +39,17 @@ describe('offline XLSX export', () => {
     expect(sheet.getCell('K6').value).toBe('2026-10-01T12:00:00.000Z');
     expect(strFromU8(files['xl/worksheets/sheet2.xml']!)).toContain('<c r="C6" s="4" t="n"><v>1200.55</v></c>');
   });
+  it('keeps formula-like notes literal and round-trips XML metacharacters and Unicode', async () => {
+    const state = fixture();
+    state.transactions[0]!.note = '=HYPERLINK("https://evil.invalid") & <tag> “₦” 😀\u0001';
+    state.transactions[1]!.merchant = '+SUM(A1:A2)';
+    state.transactions[2]!.note = '@cmd -1';
+    const { workbook, files } = await read(state);
+    const sheet = workbook.getWorksheet('Transactions')!;
+    expect(sheet.getCell('I5').value).toBe('=HYPERLINK("https://evil.invalid") & <tag> “₦” 😀');
+    expect(sheet.getCell('I5').type).toBe(ExcelJS.ValueType.String);
+    expect(sheet.getCell('J6').value).toBe('+SUM(A1:A2)');
+    expect(sheet.getCell('I7').value).toBe('@cmd -1');
+    expect(strFromU8(files['xl/worksheets/sheet2.xml']!)).not.toContain('<f>');
+  });
 });
