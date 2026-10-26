@@ -23,3 +23,10 @@ it('accepts the exact safe integer boundary and rejects the next kobo', () => {
   expect(parseMoney('9999999999999999999999999999999999999')).toBeNull();
   expect(formatMoney(Number.MAX_SAFE_INTEGER)).toBe('₦90,071,992,547,409.91');
 });
+
+it('rejects overflow during summation but allows safe cancellation', () => {
+  expect(sumKobo([Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER, 1])).toBe(1);
+  expect(() => sumKobo([Number.MAX_SAFE_INTEGER, 1])).toThrow(/safe range/);
+  expect(() => sumKobo([Number.MIN_SAFE_INTEGER, -1])).toThrow(/safe range/);
+  expect(() => sumKobo([0.1, 0.2])).toThrow();
+});
