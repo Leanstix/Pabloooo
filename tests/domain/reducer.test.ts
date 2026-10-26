@@ -126,3 +126,12 @@ it('does not advance recurrence when confirmation fails validation', () => {
   expect(() => apply(state, { type: 'recurring.confirm', id: 'r1', transactionId: 'new', occurredAt: now })).toThrow(/not due/);
   expect(JSON.stringify(state)).toBe(before);
 });
+
+it('confirms a January month-end rule through February without March drift', () => {
+  let state = apply(seed(), { type: 'recurring.save', value: { id: 'r1', name: 'Membership', kind: 'expense', amountKobo: 1000, categoryId: 'category-pleasure', frequency: 'monthly', nextDueDate: '2026-01-31', active: true } });
+  state = apply(state, { type: 'recurring.confirm', id: 'r1', transactionId: 'jan', occurredAt: '2026-01-31' });
+  expect(state.recurringRules[0]?.nextDueDate).toBe('2026-02-28');
+  state = apply(state, { type: 'recurring.confirm', id: 'r1', transactionId: 'feb', occurredAt: '2026-02-28' });
+  expect(state.recurringRules[0]?.nextDueDate).toBe('2026-03-31');
+  expect(state.recurringRules[0]?.anchorDate).toBe('2026-01-31');
+});
