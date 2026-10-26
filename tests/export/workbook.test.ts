@@ -68,4 +68,15 @@ describe('offline XLSX export', () => {
     expect(sheet.getCell('A6').value).toBe('inside');
     expect(workbook.getWorksheet('Overview')!.getCell('B7').result).toBe(1.5);
   });
+  it('opens an empty state with zero cash flow and no undefined percentages', async () => {
+    const state = fixture(); state.transactions = []; state.recurringRules = []; state.budgets = [];
+    const { workbook, files } = await read(state);
+    const overview = workbook.getWorksheet('Overview')!;
+    expect(overview.getCell('B5').result).toBe(0);
+    expect(overview.getCell('B6').result).toBe(0);
+    expect(overview.getCell('B7').result).toBe(0);
+    expect(overview.getCell('B8').value).toBe('No recorded income');
+    expect(workbook.getWorksheet('Transactions')!.rowCount).toBe(4);
+    expect(strFromU8(files['xl/worksheets/sheet1.xml']!)).not.toMatch(/NaN|Infinity|#DIV/);
+  });
 });
