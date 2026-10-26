@@ -17,3 +17,12 @@ describe('finance reducer', () => {
     expect(next.transactions[0]).toMatchObject({ amountKobo: 50000, createdAt: '2026-10-26T12:00:00.000Z', deletedAt: null });
   });
 });
+
+it('edits transaction amount without replacing creation metadata or duplicating records', () => {
+  const state = apply(seed(), { type: 'transaction.save', value: entry() });
+  const next = reduceFinance(state, { type: 'transaction.save', value: entry({ amountKobo: 70000, note: 'Dinner' }) }, '2026-10-27T12:00:00Z');
+  expect(next.transactions).toHaveLength(1);
+  expect(next.transactions[0]).toMatchObject({ createdAt: '2026-10-26T12:00:00.000Z', updatedAt: '2026-10-27T12:00:00.000Z', amountKobo: 70000, note: 'Dinner' });
+  expect(state.transactions[0]?.amountKobo).toBe(50000);
+  expect(next.revision).toBe(2);
+});
