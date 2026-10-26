@@ -44,6 +44,8 @@ The local Expo template signs release builds with its development key by default
 
 ## Checks
 
+The shortcut module is committed under `modules/pablo-shortcut` and discovered through `expo.autolinking.nativeModulesDir`. It does not need a `file:` dependency in npm. Keep that directory in the EAS build upload. Verify discovery after a clean install with `node scripts/check-shortcut-autolinking.mjs`.
+
 ```bash
 npm run check
 npm run test:ui
