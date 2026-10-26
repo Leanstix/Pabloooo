@@ -104,4 +104,13 @@ describe('offline XLSX export', () => {
     expect(recurring.getCell('I5').value).toBe(1200.55);
     expect(workbook.getWorksheet('Overview')!.getCell('B6').result).toBe(2200);
   });
+  it('keeps budget current-cycle actual independent from selected report range', async () => {
+    const { workbook } = await read(fixture(), { start: '2026-09-01', end: '2026-09-30' });
+    expect(workbook.getWorksheet('Overview')!.getCell('B6').result).toBe(0);
+    const budget = workbook.getWorksheet('Budget vs Actual')!;
+    expect(budget.getCell('B5').value).toBe(3000);
+    expect(budget.getCell('C5').value).toBe(2200);
+    expect(budget.getCell('D5').value).toEqual({ formula: 'B5-C5', result: 800 });
+    expect(budget.getCell('E5').result).toBeCloseTo(2200 / 3000);
+  });
 });
