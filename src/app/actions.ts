@@ -21,6 +21,10 @@ export function createActionService(engine: FinanceEngine, reminders: ReminderCo
     throw original;
   }
   return {
+    reconcileReminders: (): Promise<void> => serial(async () => {
+      const settings = engine.getSnapshot().state.settings;
+      await reminders(settings.remindersEnabled, settings);
+    }),
     dispatch: (action: AppAction): Promise<void> => serial(async () => {
       const previous = engine.getSnapshot().state;
       // Validate before asking Android for permission or changing scheduled reminders.

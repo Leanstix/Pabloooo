@@ -51,16 +51,15 @@ export function useFinanceController(): { controller: AppController; retry(): vo
 
   // Refresh schedules after a timezone change while the app was in the background.
   useEffect(() => {
-    if (!engine) return;
+    if (!engine || !actions) return;
     const reconcile = async () => {
-      const settings = engine.getSnapshot().state.settings;
-      try { await configureReminders(settings.remindersEnabled, settings); }
+      try { await actions.reconcileReminders(); }
       catch (error) { engine.reportError(error); }
     };
     void reconcile();
     const subscription = AppState.addEventListener('change', status => { if (status === 'active') void reconcile(); });
     return () => subscription.remove();
-  }, [engine]);
+  }, [engine, actions]);
 
   const requireEngine = (): FinanceEngine => {
     if (!engine) throw new Error('Wait until your records finish loading.');
@@ -88,7 +87,7 @@ export function useFinanceController(): { controller: AppController; retry(): vo
     }),
     exportBackup: () => run(async () => exportBackup(requireEngine().getSnapshot().state)),
     importBackup: () => run(async () => {
-      const current = requireEngine();
+      requireEngine();
       const imported = await pickBackup();
       if (!imported || !(await confirmRestore())) return;
       if (!actions) throw new Error('Wait until your records finish loading.');
