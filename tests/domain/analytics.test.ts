@@ -139,3 +139,11 @@ it('floors daily allowances to kobo and clamps overspent availability to zero', 
   state = add(state, { amountKobo: 200 });
   expect(plan(state, '2026-10-26')).toMatchObject({ remainingKobo: -100, dailyAvailableKobo: 0 });
 });
+
+it('reserves overdue configured bills in the current cycle without double-counting confirmations', () => {
+  let state = reduceFinance(seed(), { type: 'settings.update', value: { plannedIncomeKobo: 100000 } }, now);
+  state = reduceFinance(state, { type: 'recurring.save', value: { id: 'overdue', name: 'Internet bill', kind: 'expense', amountKobo: 40000, categoryId: 'category-utilities', frequency: 'monthly', nextDueDate: '2026-10-20', active: true } }, now);
+  expect(plan(state, '2026-10-26')).toMatchObject({ spentKobo: 0, projectedExpenseKobo: 40000, remainingKobo: 60000 });
+  state = reduceFinance(state, { type: 'recurring.confirm', id: 'overdue', transactionId: 'internet-paid', occurredAt: '2026-10-20' }, now);
+  expect(plan(state, '2026-10-26')).toMatchObject({ spentKobo: 40000, projectedExpenseKobo: 40000, remainingKobo: 60000 });
+});

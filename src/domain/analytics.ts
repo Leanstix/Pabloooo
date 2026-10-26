@@ -112,7 +112,8 @@ export function plan(state: FinanceState, value: string, whatIf: PlannerWhatIf =
   const additionalIncome = whatIf.additionalIncomeKobo ?? 0;
   assertKobo(additionalExpense, 'What-if expense'); assertKobo(additionalIncome, 'What-if income');
   const plannedIncomeKobo = sumKobo([state.settings.plannedIncomeKobo || summary.incomeKobo, additionalIncome]);
-  const scheduled = recurringSummary(state, { start: midnight(today), end: range.end });
+  // nextDueDate advances only on confirmation, so the full cycle also reserves overdue bills.
+  const scheduled = recurringSummary(state, range);
   const projectedExpenseKobo = sumKobo([summary.expenseKobo, scheduled.expenseKobo, additionalExpense]);
   const remainingKobo = sumKobo([plannedIncomeKobo, -projectedExpenseKobo]);
   let daysRemaining = 0;
