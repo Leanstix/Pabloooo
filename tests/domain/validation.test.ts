@@ -9,3 +9,8 @@ describe('backup validation', () => {
     expect(validateFinanceState(JSON.parse(JSON.stringify(state)))).toEqual(state);
   });
 });
+
+it('rejects future schemas and fractional negative or unsafe revisions', () => {
+  for (const schemaVersion of [0, 2, '1', null]) expect(() => validateFinanceState({ ...seed(), schemaVersion })).toThrow();
+  for (const revision of [-1, 0.5, Number.MAX_SAFE_INTEGER + 1, '0']) expect(() => validateFinanceState({ ...seed(), revision })).toThrow();
+});
