@@ -135,3 +135,11 @@ it('confirms a January month-end rule through February without March drift', () 
   expect(state.recurringRules[0]?.nextDueDate).toBe('2026-03-31');
   expect(state.recurringRules[0]?.anchorDate).toBe('2026-01-31');
 });
+
+it('detaches historical entries when deleting a recurring rule', () => {
+  let state = apply(seed(), { type: 'recurring.save', value: { id: 'r1', name: 'Rent', kind: 'expense', amountKobo: 1000, categoryId: 'category-housing', frequency: 'monthly', nextDueDate: '2026-10-26', active: true } });
+  state = apply(state, { type: 'recurring.confirm', id: 'r1', transactionId: 'paid', occurredAt: now });
+  const next = apply(state, { type: 'recurring.delete', id: 'r1' });
+  expect(next.recurringRules).toEqual([]);
+  expect(next.transactions[0]).toMatchObject({ id: 'paid', amountKobo: 1000, recurringId: null, deletedAt: null });
+});
