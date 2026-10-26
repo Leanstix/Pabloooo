@@ -13,6 +13,7 @@ export const createPngShortcut = createShortcutService({
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 1, exif: false });
     if (result.canceled) return null;
     const asset = result.assets[0];
+    if (!asset) throw new PlatformError('shortcut-selection', 'No image was selected.');
     return { uri: asset.uri, mimeType: asset.mimeType ?? null };
   },
   async inspect(uri) {
