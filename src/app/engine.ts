@@ -50,7 +50,7 @@ export class FinanceEngine {
         this.reportError(error);
         throw error;
       } finally {
-        this.update({ busy: false });
+        this.update({ busy: this.pending > 0 });
         this.initialization = null;
       }
     })();
@@ -80,6 +80,13 @@ export class FinanceEngine {
 
   dispatch = (action: AppAction): Promise<void> =>
     this.enqueue(async (state) => reduceFinance(state, action));
+
+  whenIdle = (): Promise<void> => this.queue;
+
+  close = async (): Promise<void> => {
+    await this.queue;
+    await this.repository.close();
+  };
 
   restore = (input: unknown): Promise<void> => this.enqueue(async (state) => {
     const restored = validateFinanceState(input);
