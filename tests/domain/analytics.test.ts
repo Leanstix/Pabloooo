@@ -122,3 +122,13 @@ it('calculates available daily money including today and upcoming confirmed temp
   state = reduceFinance(state, { type: 'recurring.save', value: { id: 'bill', name: 'Bill', kind: 'expense', amountKobo: 60000, categoryId: 'category-utilities', frequency: 'monthly', nextDueDate: '2026-10-30', active: true } }, now);
   expect(plan(state, '2026-10-26')).toMatchObject({ plannedIncomeKobo: 1000000, spentKobo: 400000, projectedExpenseKobo: 460000, remainingKobo: 540000, daysRemaining: 6, dailyAvailableKobo: 90000 });
 });
+
+it('applies what-if income and expenses without changing persistent state', () => {
+  let state = add(seed(), { kind: 'income', categoryId: 'category-salary', amountKobo: 100000 });
+  state = add(state, { amountKobo: 40000 });
+  const before = JSON.stringify(state);
+  expect(plan(state, '2026-10-31', { additionalIncomeKobo: 20000, additionalExpenseKobo: 5000 })).toMatchObject({ plannedIncomeKobo: 120000, projectedExpenseKobo: 45000, remainingKobo: 75000, daysRemaining: 1, dailyAvailableKobo: 75000 });
+  expect(JSON.stringify(state)).toBe(before);
+  expect(() => plan(state, '2026-10-31', { additionalExpenseKobo: -1 })).toThrow();
+  expect(() => plan(state, '2026-10-31', { additionalIncomeKobo: Number.MAX_SAFE_INTEGER })).toThrow(/safe range/);
+});
