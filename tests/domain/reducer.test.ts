@@ -34,3 +34,10 @@ it('rejects nonpositive fractional and unsafe amounts atomically', () => {
   expect(JSON.stringify(state)).toBe(before);
   expect(state.revision).toBe(0);
 });
+
+it('requires an existing category of the same income or expense kind', () => {
+  const state = seed();
+  expect(() => apply(state, { type: 'transaction.save', value: entry({ categoryId: 'missing' }) })).toThrow();
+  expect(() => apply(state, { type: 'transaction.save', value: entry({ categoryId: 'category-salary' }) })).toThrow();
+  expect(() => apply(state, { type: 'transaction.save', value: entry({ occurredAt: '2026-02-30' }) })).toThrow();
+});
