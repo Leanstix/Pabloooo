@@ -43,3 +43,13 @@ it('keeps historical archived categories visible and never divides by zero incom
   expect(categoryBreakdown(state, range).find(row => row.categoryId === 'category-feeding')).toMatchObject({ amountKobo: 50000, percentOfIncome: null });
   expect(summarize(state, range).expenseKobo).toBe(50000);
 });
+
+it('fills daily gaps with zero and reconciles every plotted amount to reports', () => {
+  const state = add(add(seed(), { occurredAt: '2026-10-01', amountKobo: 12345 }), { occurredAt: '2026-10-31', kind: 'income', categoryId: 'category-salary', amountKobo: 99999 });
+  const points = chartSeries(state, range, 'day');
+  expect(points).toHaveLength(31);
+  expect(points[0]).toEqual({ key: '2026-10-01', incomeKobo: 0, expenseKobo: 12345 });
+  expect(points[1]).toEqual({ key: '2026-10-02', incomeKobo: 0, expenseKobo: 0 });
+  expect(points.reduce((sum, row) => sum + row.incomeKobo, 0)).toBe(summarize(state, range).incomeKobo);
+  expect(points.reduce((sum, row) => sum + row.expenseKobo, 0)).toBe(summarize(state, range).expenseKobo);
+});
