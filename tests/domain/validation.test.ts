@@ -23,3 +23,10 @@ it('rejects missing and unknown fields at the root and in settings', () => {
   expect(() => validateFinanceState({ ...state, settings: { ...state.settings, currency: 'USD' } })).toThrow(/NGN/);
   expect(() => validateFinanceState({ ...state, settings: { ...state.settings, injected: true } })).toThrow(/fields/);
 });
+
+it('rejects duplicate entity IDs and IDs with path or control characters', () => {
+  const state = seed();
+  expect(() => validateFinanceState({ ...state, categories: [...state.categories, state.categories[0]] })).toThrow(/Duplicate/);
+  for (const installationId of ['../secret', '', 'with spaces', '__proto__', 'x\n']) expect(() => validateFinanceState({ ...state, installationId })).toThrow(/ID/);
+  expect(() => validateFinanceState({ ...state, categories: state.categories.map((row, i) => i ? row : { ...row, id: 'a/b' }) })).toThrow(/ID/);
+});
