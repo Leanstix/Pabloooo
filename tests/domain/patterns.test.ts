@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import { buildSync } from 'esbuild';
 import { describe, expect, it } from 'vitest';
 import { categoryFrequency, initialState, reduceFinance, reportRange } from '../../src/domain';
 import type { FinanceState, TransactionInput } from '../../src/domain';
@@ -70,4 +72,21 @@ it('averages distinct calendar day gaps even with unsorted repeated entries', ()
   state = add(state, { occurredAt: '2026-10-02' });
   state = add(state, { occurredAt: '2026-10-02' });
   expect(categoryFrequency(state, 'category-feeding', range)).toMatchObject({ count: 4, activeDays: 3, averageGapDays: 2.5 });
+});
+
+it('uses local calendar day gaps across spring and fall daylight saving changes', () => {
+  const bundled = buildSync({ entryPoints: [new URL('../../src/domain/patterns.ts', import.meta.url).pathname], bundle: true, write: false, format: 'cjs', platform: 'node', target: 'node20' }).outputFiles[0]!.text;
+  const template = add(fresh()).transactions[0]!;
+  const probe = `const module={exports:{}};new Function('module','exports',${JSON.stringify(bundled)})(module,module.exports);
+    const state=${JSON.stringify(fresh())};const template=${JSON.stringify(template)};
+    function frequency(dates,start,end){state.transactions=dates.map((occurredAt,index)=>({...template,id:'probe-'+index,occurredAt}));return module.exports.categoryFrequency(state,'category-feeding',{start,end});}
+    console.log(JSON.stringify({
+      spring:frequency(['2026-03-07T17:00:00Z','2026-03-08T16:00:00Z','2026-03-09T16:00:00Z'],'2026-03-07','2026-03-10'),
+      fall:frequency(['2026-10-31T16:00:00Z','2026-11-01T17:00:00Z','2026-11-02T17:00:00Z'],'2026-10-31','2026-11-03'),
+      local:frequency(['2026-03-08T03:30:00Z','2026-03-08T04:30:00Z','2026-03-08T07:30:00Z'],'2026-03-07','2026-03-09')
+    }));`;
+  const result = JSON.parse(execFileSync(process.execPath, ['-e', probe], { env: { ...process.env, TZ: 'America/New_York' }, encoding: 'utf8' }));
+  expect(result.spring).toMatchObject({ count: 3, activeDays: 3, averageGapDays: 1 });
+  expect(result.fall).toMatchObject({ count: 3, activeDays: 3, averageGapDays: 1 });
+  expect(result.local).toMatchObject({ count: 3, activeDays: 2, averageGapDays: 1 });
 });
