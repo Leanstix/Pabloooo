@@ -19,7 +19,7 @@ const service = createReminderService({
   },
   async restore(previous) {
     const item = previous.restore as Notifications.NotificationRequest;
-    await Notifications.scheduleNotificationAsync({ identifier: item.identifier, content: item.content, trigger: item.trigger as Notifications.NotificationTriggerInput });
+    await Notifications.scheduleNotificationAsync({ identifier: item.identifier, content: { title: item.content.title ?? undefined, body: item.content.body ?? undefined, sound: 'default' }, trigger: item.trigger as Notifications.NotificationTriggerInput });
   },
 });
 /** Resolves only when Android has accepted both schedules (or both cancellations). */
