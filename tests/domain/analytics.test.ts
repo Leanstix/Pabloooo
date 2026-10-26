@@ -53,3 +53,12 @@ it('fills daily gaps with zero and reconciles every plotted amount to reports', 
   expect(points.reduce((sum, row) => sum + row.incomeKobo, 0)).toBe(summarize(state, range).incomeKobo);
   expect(points.reduce((sum, row) => sum + row.expenseKobo, 0)).toBe(summarize(state, range).expenseKobo);
 });
+
+it('groups a daily report by local clock hour including empty hours', () => {
+  const date = new Date(2026, 9, 26, 12, 30).toISOString();
+  const state = add(seed(), { occurredAt: date });
+  const points = chartSeries(state, reportRange('day', '2026-10-26'), 'hour');
+  expect(points).toHaveLength(24);
+  expect(points.find(row => row.key === '2026-10-26T12:00')?.expenseKobo).toBe(50000);
+  expect(points.reduce((sum, row) => sum + row.expenseKobo, 0)).toBe(50000);
+});
