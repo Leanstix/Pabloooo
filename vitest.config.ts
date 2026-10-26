@@ -6,6 +6,8 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     clearMocks: true,
     restoreMocks: true,
+    pool: 'threads',
+    maxWorkers: 2,
     testTimeout: 15000,
   },
 });
