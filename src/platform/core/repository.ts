@@ -30,7 +30,7 @@ export async function openRepository(database: SqlDatabase, validate: StateValid
         throw error;
       }
     }),
-    save: (state: FinanceState) => {
+    save: async (state: FinanceState) => {
       // Capture the state before it joins the queue; callers cannot mutate queued data.
       const row = encodeSnapshot(state, validate);
       return queue(async () => {
