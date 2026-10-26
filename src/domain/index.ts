@@ -5,3 +5,4 @@ export * from './initial';
 export * from './validation';
 export * from './reducer';
 export * from './analytics';
+export * from './patterns';
