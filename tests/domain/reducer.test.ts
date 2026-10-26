@@ -95,3 +95,13 @@ it('prevents historical category type changes and duplicate sibling names', () =
   expect(() => apply(state, { type: 'category.save', value })).toThrow(/referenced/);
   expect(() => apply(state, { type: 'category.save', value: { ...value, id: 'copy', kind: 'expense', name: '  feeding  ' } })).toThrow(/already exists/);
 });
+
+it('stores one expense-category budget per cycle and rejects mismatched keys', () => {
+  const value = { id: 'b1', categoryId: 'category-feeding', limitKobo: 200000, cycleKey: '2026-10-01' };
+  const state = apply(seed(), { type: 'budget.save', value });
+  expect(state.budgets[0]?.limitKobo).toBe(200000);
+  expect(() => apply(state, { type: 'budget.save', value: { ...value, id: 'b2' } })).toThrow(/Duplicate/);
+  expect(() => apply(state, { type: 'budget.save', value: { ...value, id: 'b2', cycleKey: '2026-10-02' } })).toThrow(/start of a cycle/);
+  expect(() => apply(state, { type: 'budget.save', value: { ...value, categoryId: 'category-salary' } })).toThrow();
+  expect(apply(state, { type: 'budget.delete', id: 'b1' }).budgets).toEqual([]);
+});
