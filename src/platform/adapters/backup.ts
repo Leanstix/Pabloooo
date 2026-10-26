@@ -19,6 +19,7 @@ const backupTransfer = createBackupTransfer({
     const result = await DocumentPicker.getDocumentAsync({ type: ['application/json', 'text/plain', 'application/octet-stream'], copyToCacheDirectory: true, multiple: false });
     if (result.canceled) return null;
     const asset = result.assets[0];
+    if (!asset) throw new PlatformError('backup-selection', 'No backup file was selected.');
     assertPrivateUri(asset.uri);
     return { uri: asset.uri, size: asset.size };
   },
