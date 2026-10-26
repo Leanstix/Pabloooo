@@ -17,7 +17,9 @@ describe('React native application session lifecycle', () => {
     const first = memoryRepository();
     const second = memoryRepository(fresh());
     let release!: () => void;
-    const acquired = new Promise<void>(resolve => { release = resolve; });
+    const acquired = new Promise<void>((resolve) => {
+      release = resolve;
+    });
     const a = manager.open(async () => {
       await acquired;
       return new FinanceEngine(first.repository, 'old-phone');
@@ -38,7 +40,12 @@ describe('React native application session lifecycle', () => {
     const manager = createSessionManager();
     const first = memoryRepository();
     let release!: () => void;
-    vi.mocked(first.repository.load).mockImplementationOnce(() => new Promise(resolve => { release = () => resolve(null); }));
+    vi.mocked(first.repository.load).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve(null);
+        }),
+    );
     const a = manager.open(async () => new FinanceEngine(first.repository, 'phone'));
     await vi.waitFor(() => expect(release).toBeTypeOf('function'));
     a.cancel();
@@ -58,7 +65,9 @@ describe('React native application session lifecycle', () => {
     vi.mocked(first.repository.load).mockRejectedValueOnce(new Error('Read failed'));
     const a = manager.open(async () => new FinanceEngine(first.repository, 'phone'));
     await expect(a.ready).rejects.toThrow('Read failed');
-    const b = manager.open(async () => new FinanceEngine(memoryRepository().repository, 'next-phone'));
+    const b = manager.open(
+      async () => new FinanceEngine(memoryRepository().repository, 'next-phone'),
+    );
     expect((await b.ready)?.getSnapshot().ready).toBe(true);
     b.cancel();
   });

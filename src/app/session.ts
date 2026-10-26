@@ -8,17 +8,30 @@ export function createSessionManager() {
       let cancelled = false;
       let engine: FinanceEngine | null = null;
       let disposal: Promise<void> | null = null;
-      const dispose = () => engine ? (disposal ??= engine.close()) : Promise.resolve();
+      const dispose = () => (engine ? (disposal ??= engine.close()) : Promise.resolve());
       const ready = queue.then(async () => {
         if (cancelled) return null;
         engine = await factory();
-        if (cancelled) { await dispose(); return null; }
-        try { await engine.initialize(); }
-        catch (error) { await dispose().catch(() => undefined); throw error; }
-        if (cancelled) { await dispose(); return null; }
+        if (cancelled) {
+          await dispose();
+          return null;
+        }
+        try {
+          await engine.initialize();
+        } catch (error) {
+          await dispose().catch(() => undefined);
+          throw error;
+        }
+        if (cancelled) {
+          await dispose();
+          return null;
+        }
         return engine;
       });
-      queue = ready.then(() => undefined, () => undefined);
+      queue = ready.then(
+        () => undefined,
+        () => undefined,
+      );
       return {
         ready,
         cancel() {

@@ -14,13 +14,16 @@ describe('quick calculator', () => {
     expect(calculate('2−−3')).toBe(5);
   });
   it('rounds decimal money to kobo', () => {
-    expect(calculate('0.1 + 0.2')).toBe(.3);
+    expect(calculate('0.1 + 0.2')).toBe(0.3);
     expect(calculate('10 ÷ 3')).toBe(3.33);
     expect(calculate('1.005')).toBe(1.01);
   });
-  it.each(['', '2+', '2..3', '5÷0', '1e3', '(1+2)', 'NaN', 'alert(1)', '++3'])('rejects malformed or unsafe expression %s', expression => {
-    expect(calculate(expression)).toBeNull();
-  });
+  it.each(['', '2+', '2..3', '5÷0', '1e3', '(1+2)', 'NaN', 'alert(1)', '++3'])(
+    'rejects malformed or unsafe expression %s',
+    (expression) => {
+      expect(calculate(expression)).toBeNull();
+    },
+  );
   it('does not return amounts outside safe kobo precision', () => {
     expect(calculate('9007199254740991')).toBeNull();
     expect(calculate('9999999999999999999999999999999999999 × 999999999999')).toBeNull();

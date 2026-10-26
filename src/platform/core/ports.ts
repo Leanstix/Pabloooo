@@ -7,7 +7,9 @@ export interface SqlTransaction {
   execAsync(sql: string): Promise<void>;
 }
 export interface SqlDatabase extends SqlTransaction {
-  withExclusiveTransactionAsync(task: (transaction: SqlTransaction) => Promise<void>): Promise<void>;
+  withExclusiveTransactionAsync(
+    task: (transaction: SqlTransaction) => Promise<void>,
+  ): Promise<void>;
   closeAsync(): Promise<void>;
 }
 export interface StateRepository {

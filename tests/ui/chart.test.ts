@@ -10,7 +10,12 @@ const points = [
 describe('interactive chart intervals', () => {
   it('starts at the latest interval with activity instead of trailing empty time', () => {
     expect(selectedInterval(points, null)).toBe(1);
-    expect(selectedInterval(points.map(point => ({ ...point, incomeKobo: 0, expenseKobo: 0 })), null)).toBe(0);
+    expect(
+      selectedInterval(
+        points.map((point) => ({ ...point, incomeKobo: 0, expenseKobo: 0 })),
+        null,
+      ),
+    ).toBe(0);
   });
   it('preserves explicit selection even when the interval is empty', () => {
     expect(selectedInterval(points, '2026-10-26T10:00')).toBe(2);

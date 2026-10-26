@@ -8,9 +8,16 @@ it('seeds useful categories without inventing any financial activity', () => {
   expect(state.goals).toEqual([]);
   expect(state.recurringRules).toEqual([]);
   expect(state.settings.plannedIncomeKobo).toBe(0);
-  expect(state.categories.map(category => category.name)).toEqual(expect.arrayContaining([
-    'Feeding', 'Transportation', 'Skincare', 'Giving', 'Pleasure', 'Unforeseen',
-  ]));
+  expect(state.categories.map((category) => category.name)).toEqual(
+    expect.arrayContaining([
+      'Feeding',
+      'Transportation',
+      'Skincare',
+      'Giving',
+      'Pleasure',
+      'Unforeseen',
+    ]),
+  );
 });
 
 it('rejects invalid installation identifiers and rolled-over initialization dates', () => {

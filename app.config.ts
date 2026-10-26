@@ -28,7 +28,13 @@ const config: ExpoConfig = {
   plugins: [
     'expo-sqlite',
     'expo-notifications',
-    ['expo-image-picker', { photosPermission: 'Select a PNG for your Pabloooo home-screen shortcut.', microphonePermission: false }],
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'Select a PNG for your Pabloooo home-screen shortcut.',
+        microphonePermission: false,
+      },
+    ],
     './plugins/withPabloShortcut.js',
   ],
   updates: { enabled: false },

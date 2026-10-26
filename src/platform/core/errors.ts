@@ -1,6 +1,9 @@
 /** Recoverable platform errors are safe to present without exposing private data. */
 export class PlatformError extends Error {
-  constructor(public readonly code: string, message: string) {
+  constructor(
+    public readonly code: string,
+    message: string,
+  ) {
     super(message);
     this.name = 'PlatformError';
   }

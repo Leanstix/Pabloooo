@@ -18,14 +18,19 @@ export class FinanceEngine {
   private initialization: Promise<void> | null = null;
   private pending = 0;
 
-  constructor(private readonly repository: FinanceRepository, installationId: string) {
+  constructor(
+    private readonly repository: FinanceRepository,
+    installationId: string,
+  ) {
     this.snapshot = { state: initialState(installationId), ready: false, busy: false, error: null };
   }
 
   getSnapshot = (): EngineSnapshot => this.snapshot;
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
-    return () => { this.listeners.delete(listener); };
+    return () => {
+      this.listeners.delete(listener);
+    };
   };
 
   private update(patch: Partial<EngineSnapshot>): void {
@@ -33,8 +38,12 @@ export class FinanceEngine {
     for (const listener of this.listeners) listener();
   }
 
-  dismissError = (): void => { this.update({ error: null }); };
-  reportError = (error: unknown): void => { this.update({ error: errorMessage(error) }); };
+  dismissError = (): void => {
+    this.update({ error: null });
+  };
+  reportError = (error: unknown): void => {
+    this.update({ error: errorMessage(error) });
+  };
 
   initialize(): Promise<void> {
     if (this.snapshot.ready) return Promise.resolve();
@@ -67,13 +76,15 @@ export class FinanceEngine {
       await this.repository.save(next);
       this.update({ state: next });
     });
-    const settled = result.catch((error: unknown) => {
-      this.reportError(error);
-      throw error;
-    }).finally(() => {
-      this.pending -= 1;
-      this.update({ busy: this.pending > 0 });
-    });
+    const settled = result
+      .catch((error: unknown) => {
+        this.reportError(error);
+        throw error;
+      })
+      .finally(() => {
+        this.pending -= 1;
+        this.update({ busy: this.pending > 0 });
+      });
     this.queue = settled.catch(() => undefined);
     return settled;
   }
@@ -88,12 +99,13 @@ export class FinanceEngine {
     await this.repository.close();
   };
 
-  restore = (input: unknown): Promise<void> => this.enqueue(async (state) => {
-    const restored = validateFinanceState(input);
-    return validateFinanceState({
-      ...restored,
-      revision: state.revision + 1,
-      settings: { ...restored.settings, remindersEnabled: false },
+  restore = (input: unknown): Promise<void> =>
+    this.enqueue(async (state) => {
+      const restored = validateFinanceState(input);
+      return validateFinanceState({
+        ...restored,
+        revision: state.revision + 1,
+        settings: { ...restored.settings, remindersEnabled: false },
+      });
     });
-  });
 }

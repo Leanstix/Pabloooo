@@ -12,7 +12,22 @@ describe('integer kobo money', () => {
 });
 
 it('rejects misplaced commas exponent notation signs and more than two decimals', () => {
-  for (const input of ['', ' ', '-1', '+1', '1e3', 'Infinity', 'NaN', '1.001', '1,00', '12,34,567', '.50', '50.', '1 000', '₦']) {
+  for (const input of [
+    '',
+    ' ',
+    '-1',
+    '+1',
+    '1e3',
+    'Infinity',
+    'NaN',
+    '1.001',
+    '1,00',
+    '12,34,567',
+    '.50',
+    '50.',
+    '1 000',
+    '₦',
+  ]) {
     expect(parseMoney(input), input).toBeNull();
   }
 });
@@ -34,6 +49,7 @@ it('rejects overflow during summation but allows safe cancellation', () => {
 it('allows zero settings while requiring positive transaction amounts', () => {
   expect(() => assertKobo(0)).not.toThrow();
   expect(() => assertKobo(0, 'Transaction', false)).toThrow(/positive/);
-  for (const value of [-1, 1.1, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1, '100', null]) expect(() => assertKobo(value)).toThrow();
+  for (const value of [-1, 1.1, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1, '100', null])
+    expect(() => assertKobo(value)).toThrow();
   expect(formatMoney(0)).toBe('₦0.00');
 });

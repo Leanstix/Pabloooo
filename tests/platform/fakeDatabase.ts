@@ -17,21 +17,38 @@ export class FakeDatabase implements SqlDatabase {
   }
   async getFirstAsync<T>(sql: string): Promise<T | null> {
     if (sql.includes('user_version')) return { user_version: this.version } as T;
-    return this.row ? JSON.parse(JSON.stringify(this.row)) as T : null;
+    return this.row ? (JSON.parse(JSON.stringify(this.row)) as T) : null;
   }
   async runAsync(sql: string, ...values: SqlValue[]): Promise<{ changes: number }> {
     if (sql.startsWith('UPDATE') && this.row?.revision !== values[4]) return { changes: 0 };
     const [schema, revision, payload, integrity] = values;
-    this.row = { schema_version: Number(schema), revision: Number(revision), payload: String(payload), checksum: String(integrity) };
-    if (this.failMutation) { this.failMutation = false; throw new Error('Disk is full'); }
+    this.row = {
+      schema_version: Number(schema),
+      revision: Number(revision),
+      payload: String(payload),
+      checksum: String(integrity),
+    };
+    if (this.failMutation) {
+      this.failMutation = false;
+      throw new Error('Disk is full');
+    }
     return { changes: 1 };
   }
-  async withExclusiveTransactionAsync(task: (transaction: SqlTransaction) => Promise<void>): Promise<void> {
+  async withExclusiveTransactionAsync(
+    task: (transaction: SqlTransaction) => Promise<void>,
+  ): Promise<void> {
     this.transactions += 1;
     const previous = this.row ? { ...this.row } : null;
     const version = this.version;
-    try { await task(this); }
-    catch (error) { this.row = previous; this.version = version; throw error; }
+    try {
+      await task(this);
+    } catch (error) {
+      this.row = previous;
+      this.version = version;
+      throw error;
+    }
   }
-  async closeAsync(): Promise<void> { this.closed += 1; }
+  async closeAsync(): Promise<void> {
+    this.closed += 1;
+  }
 }

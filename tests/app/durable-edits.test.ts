@@ -7,7 +7,11 @@ describe('durable finance edits', () => {
     const { repository, read } = memoryRepository(fresh());
     const engine = new FinanceEngine(repository, 'phone');
     await engine.initialize();
-    await Promise.all(['lunch', 'dinner'].map(id => engine.dispatch({ type: 'transaction.save', value: entry(id) })));
+    await Promise.all(
+      ['lunch', 'dinner'].map((id) =>
+        engine.dispatch({ type: 'transaction.save', value: entry(id) }),
+      ),
+    );
     expect(engine.getSnapshot().state.transactions).toHaveLength(2);
     expect(read()?.revision).toBe(2);
   });
@@ -16,7 +20,12 @@ describe('durable finance edits', () => {
     const engine = new FinanceEngine(repository, 'phone');
     await engine.initialize();
     let complete!: () => void;
-    vi.mocked(repository.save).mockImplementationOnce(() => new Promise<void>(resolve => { complete = resolve; }));
+    vi.mocked(repository.save).mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          complete = resolve;
+        }),
+    );
     const save = engine.dispatch({ type: 'transaction.save', value: entry('lunch') });
     await vi.waitFor(() => expect(complete).toBeTypeOf('function'));
     expect(engine.getSnapshot().state.transactions).toEqual([]);
@@ -30,17 +39,21 @@ describe('durable finance edits', () => {
     const engine = new FinanceEngine(repository, 'phone');
     await engine.initialize();
     vi.mocked(repository.save).mockRejectedValueOnce(new Error('Storage full'));
-    await expect(engine.dispatch({ type: 'transaction.save', value: entry('failed') })).rejects.toThrow('Storage full');
+    await expect(
+      engine.dispatch({ type: 'transaction.save', value: entry('failed') }),
+    ).rejects.toThrow('Storage full');
     expect(engine.getSnapshot().state.transactions).toEqual([]);
     await engine.dispatch({ type: 'transaction.save', value: entry('success') });
-    expect(engine.getSnapshot().state.transactions.map(item => item.id)).toEqual(['success']);
+    expect(engine.getSnapshot().state.transactions.map((item) => item.id)).toEqual(['success']);
     expect(engine.getSnapshot().busy).toBe(false);
   });
   it('rejects invalid amounts without calling persistence', async () => {
     const { repository } = memoryRepository(fresh());
     const engine = new FinanceEngine(repository, 'phone');
     await engine.initialize();
-    await expect(engine.dispatch({ type: 'transaction.save', value: entry('bad', -1) })).rejects.toThrow();
+    await expect(
+      engine.dispatch({ type: 'transaction.save', value: entry('bad', -1) }),
+    ).rejects.toThrow();
     expect(repository.save).not.toHaveBeenCalled();
   });
   it('notifies subscribers and allows unsubscribing', async () => {

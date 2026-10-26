@@ -16,15 +16,27 @@ export function dateOnly(value: string): string {
   return ymd(date.getFullYear(), date.getMonth() + 1, date.getDate());
 }
 export function isTimestamp(value: unknown): value is string {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return false;
+  if (
+    typeof value !== 'string' ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+  )
+    return false;
   if (!isDate(value.slice(0, 10))) return false;
   const hours = Number(value.slice(11, 13));
   const minutes = Number(value.slice(14, 16));
   const seconds = Number(value.slice(17, 19));
   const offset = /([+-])(\d{2}):(\d{2})$/.exec(value);
-  return hours < 24 && minutes < 60 && seconds < 60 && (!offset || (Number(offset[2]) < 24 && Number(offset[3]) < 60)) && Number.isFinite(Date.parse(value));
+  return (
+    hours < 24 &&
+    minutes < 60 &&
+    seconds < 60 &&
+    (!offset || (Number(offset[2]) < 24 && Number(offset[3]) < 60)) &&
+    Number.isFinite(Date.parse(value))
+  );
 }
-export function isDateTime(value: unknown): value is string { return isDate(value) || isTimestamp(value); }
+export function isDateTime(value: unknown): value is string {
+  return isDate(value) || isTimestamp(value);
+}
 export function timestamp(now: Date | string = new Date()): string {
   if (typeof now === 'string' && !isDateTime(now)) throw new Error('Invalid current time.');
   const date = typeof now === 'string' ? new Date(now) : now;
@@ -57,7 +69,7 @@ export function addMonths(date: string, count: number): string {
   const [year, month, day] = date.split('-').map(Number) as [number, number, number];
   const index = year * 12 + month - 1 + count;
   const nextYear = Math.floor(index / 12);
-  const nextMonth = ((index % 12) + 12) % 12 + 1;
+  const nextMonth = (((index % 12) + 12) % 12) + 1;
   return ymd(nextYear, nextMonth, Math.min(day, daysInMonth(nextYear, nextMonth)));
 }
 export function nextDueDate(date: string, frequency: Frequency, anchorDate: string = date): string {
@@ -72,7 +84,8 @@ export function nextDueDate(date: string, frequency: Frequency, anchorDate: stri
   throw new Error('Unknown recurring frequency.');
 }
 export function validateRange(range: DateRange): DateRange {
-  if (!isDateTime(range.start) || !isDateTime(range.end) || epoch(range.start) >= epoch(range.end)) throw new Error('Date range must have a valid start before its exclusive end.');
+  if (!isDateTime(range.start) || !isDateTime(range.end) || epoch(range.start) >= epoch(range.end))
+    throw new Error('Date range must have a valid start before its exclusive end.');
   return range;
 }
 export function inRange(value: string, range: DateRange): boolean {
@@ -80,7 +93,8 @@ export function inRange(value: string, range: DateRange): boolean {
   return time >= epoch(range.start) && time < epoch(range.end);
 }
 export function cycleRange(value: string, startDay: number): DateRange {
-  if (!Number.isInteger(startDay) || startDay < 1 || startDay > 31) throw new Error('Cycle start day must be between 1 and 31.');
+  if (!Number.isInteger(startDay) || startDay < 1 || startDay > 31)
+    throw new Error('Cycle start day must be between 1 and 31.');
   const date = dateOnly(value);
   const [year, month] = date.split('-').map(Number) as [number, number];
   const thisStart = ymd(year, month, Math.min(startDay, daysInMonth(year, month)));
@@ -89,13 +103,21 @@ export function cycleRange(value: string, startDay: number): DateRange {
   const next = addMonths(anchor, 1);
   const [endYear, endMonth] = next.split('-').map(Number) as [number, number];
   return {
-    start: midnight(ymd(startYear, startMonth, Math.min(startDay, daysInMonth(startYear, startMonth)))),
+    start: midnight(
+      ymd(startYear, startMonth, Math.min(startDay, daysInMonth(startYear, startMonth))),
+    ),
     end: midnight(ymd(endYear, endMonth, Math.min(startDay, daysInMonth(endYear, endMonth)))),
   };
 }
-export function cycleKey(value: string, startDay: number): string { return dateOnly(cycleRange(value, startDay).start); }
-export function midnight(date: string): string { return new Date(epoch(date)).toISOString(); }
-function calendarRange(start: string, end: string): DateRange { return { start: midnight(start), end: midnight(end) }; }
+export function cycleKey(value: string, startDay: number): string {
+  return dateOnly(cycleRange(value, startDay).start);
+}
+export function midnight(date: string): string {
+  return new Date(epoch(date)).toISOString();
+}
+function calendarRange(start: string, end: string): DateRange {
+  return { start: midnight(start), end: midnight(end) };
+}
 export type ReportPeriod = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
 export function reportRange(period: ReportPeriod, value: string, custom?: DateRange): DateRange {
   const date = dateOnly(value);
@@ -110,7 +132,8 @@ export function reportRange(period: ReportPeriod, value: string, custom?: DateRa
     const start = addDays(date, -((weekday + 6) % 7));
     return calendarRange(start, addDays(start, 7));
   }
-  if (period === 'month') return calendarRange(ymd(year, month, 1), addMonths(ymd(year, month, 1), 1));
+  if (period === 'month')
+    return calendarRange(ymd(year, month, 1), addMonths(ymd(year, month, 1), 1));
   if (period === 'quarter') {
     const start = ymd(year, Math.floor((month - 1) / 3) * 3 + 1, 1);
     return calendarRange(start, addMonths(start, 3));

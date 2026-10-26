@@ -25,7 +25,11 @@ describe('safe application bootstrap', () => {
     const engine = new FinanceEngine(repository, 'new-phone');
     await expect(engine.initialize()).rejects.toThrow('Unreadable');
     expect(repository.save).not.toHaveBeenCalled();
-    expect(engine.getSnapshot()).toMatchObject({ ready: false, busy: false, error: 'Unreadable local data' });
+    expect(engine.getSnapshot()).toMatchObject({
+      ready: false,
+      busy: false,
+      error: 'Unreadable local data',
+    });
   });
   it('supports retry after a temporary read failure', async () => {
     const { repository } = memoryRepository(fresh());

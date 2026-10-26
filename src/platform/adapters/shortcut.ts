@@ -8,9 +8,15 @@ import { MAX_PNG_BYTES } from '../core/png';
 import { createShortcutService } from '../core/shortcut';
 import { privateDocumentDirectory, privateFilename, removePrivateFile } from './privateFiles';
 export const createPngShortcut = createShortcutService({
-  available: async () => Platform.OS === 'android' && !!PabloShortcut && await PabloShortcut.isAvailable(),
+  available: async () =>
+    Platform.OS === 'android' && !!PabloShortcut && (await PabloShortcut.isAvailable()),
   async pickPng() {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: false, quality: 1, exif: false });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: false,
+      quality: 1,
+      exif: false,
+    });
     if (result.canceled) return null;
     const asset = result.assets[0];
     if (!asset) throw new PlatformError('shortcut-selection', 'No image was selected.');
@@ -18,8 +24,13 @@ export const createPngShortcut = createShortcutService({
   },
   async inspect(uri) {
     const info = await FileSystem.getInfoAsync(uri);
-    if (!info.exists || info.isDirectory || info.size > MAX_PNG_BYTES) throw new PlatformError('shortcut-size', 'Choose a readable PNG image smaller than 8 MB.');
-    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64, position: 0, length: 32 });
+    if (!info.exists || info.isDirectory || info.size > MAX_PNG_BYTES)
+      throw new PlatformError('shortcut-size', 'Choose a readable PNG image smaller than 8 MB.');
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+      position: 0,
+      length: 32,
+    });
     return { header: decodeBase64(base64), size: info.size };
   },
   async persist(uri) {
@@ -27,6 +38,6 @@ export const createPngShortcut = createShortcutService({
     await FileSystem.copyAsync({ from: uri, to: target });
     return target;
   },
-  requestPin: async uri => !!PabloShortcut && await PabloShortcut.requestPinShortcut(uri),
+  requestPin: async (uri) => !!PabloShortcut && (await PabloShortcut.requestPinShortcut(uri)),
   remove: removePrivateFile,
 });

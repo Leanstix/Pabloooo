@@ -2,37 +2,84 @@
 export type EntryKind = 'income' | 'expense';
 export type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export interface Category {
-  id: string; name: string; kind: EntryKind; parentId: string | null;
-  color: string; icon: string; archived: boolean; createdAt: string; updatedAt: string;
+  id: string;
+  name: string;
+  kind: EntryKind;
+  parentId: string | null;
+  color: string;
+  icon: string;
+  archived: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 export interface Transaction {
-  id: string; kind: EntryKind; amountKobo: number; categoryId: string;
-  note: string; merchant: string; occurredAt: string;
-  recurringId: string | null; createdAt: string; updatedAt: string; deletedAt: string | null;
+  id: string;
+  kind: EntryKind;
+  amountKobo: number;
+  categoryId: string;
+  note: string;
+  merchant: string;
+  occurredAt: string;
+  recurringId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
 }
 export interface Budget {
-  id: string; categoryId: string; limitKobo: number; cycleKey: string;
-  createdAt: string; updatedAt: string;
+  id: string;
+  categoryId: string;
+  limitKobo: number;
+  cycleKey: string;
+  createdAt: string;
+  updatedAt: string;
 }
 export interface RecurringRule {
-  id: string; name: string; kind: EntryKind; amountKobo: number; categoryId: string;
-  frequency: Frequency; nextDueDate: string; anchorDate?: string; active: boolean; createdAt: string; updatedAt: string;
+  id: string;
+  name: string;
+  kind: EntryKind;
+  amountKobo: number;
+  categoryId: string;
+  frequency: Frequency;
+  nextDueDate: string;
+  anchorDate?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 export interface SavingsGoal {
-  id: string; name: string; targetKobo: number; savedKobo: number;
-  targetDate: string | null; createdAt: string; updatedAt: string;
+  id: string;
+  name: string;
+  targetKobo: number;
+  savedKobo: number;
+  targetDate: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 export interface Settings {
-  currency: 'NGN'; cycleStartDay: number; plannedIncomeKobo: number;
-  theme: 'system' | 'light' | 'dark'; remindersEnabled: boolean;
-  morningTime: string; eveningTime: string; onboardingComplete: boolean;
+  currency: 'NGN';
+  cycleStartDay: number;
+  plannedIncomeKobo: number;
+  theme: 'system' | 'light' | 'dark';
+  remindersEnabled: boolean;
+  morningTime: string;
+  eveningTime: string;
+  onboardingComplete: boolean;
 }
 export interface FinanceState {
-  schemaVersion: 1; revision: number; installationId: string;
-  transactions: Transaction[]; categories: Category[]; budgets: Budget[];
-  recurringRules: RecurringRule[]; goals: SavingsGoal[]; settings: Settings;
+  schemaVersion: 1;
+  revision: number;
+  installationId: string;
+  transactions: Transaction[];
+  categories: Category[];
+  budgets: Budget[];
+  recurringRules: RecurringRule[];
+  goals: SavingsGoal[];
+  settings: Settings;
 }
-export interface DateRange { start: string; end: string }
+export interface DateRange {
+  start: string;
+  end: string;
+}
 export type TransactionInput = Omit<Transaction, 'createdAt' | 'updatedAt' | 'deletedAt'>;
 export type CategoryInput = Omit<Category, 'createdAt' | 'updatedAt'>;
 export type BudgetInput = Omit<Budget, 'createdAt' | 'updatedAt'>;

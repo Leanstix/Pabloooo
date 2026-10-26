@@ -1,15 +1,24 @@
 /** Parse naira text directly into integer kobo, without floating-point currency math. */
 export function parseMoney(input: string): number | null {
-  const text = input.trim().replace(/^(?:₦|NGN\s*)/i, '').trim();
+  const text = input
+    .trim()
+    .replace(/^(?:₦|NGN\s*)/i, '')
+    .trim();
   if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(text)) return null;
   const [whole = '', fraction = ''] = text.replace(/,/g, '').split('.');
   const result = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, '0'));
   return result <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(result) : null;
 }
 
-export function assertKobo(value: unknown, label = 'Amount', allowZero = true): asserts value is number {
+export function assertKobo(
+  value: unknown,
+  label = 'Amount',
+  allowZero = true,
+): asserts value is number {
   if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < (allowZero ? 0 : 1)) {
-    throw new Error(`${label} must be ${allowZero ? 'a non-negative' : 'a positive'} safe integer in kobo.`);
+    throw new Error(
+      `${label} must be ${allowZero ? 'a non-negative' : 'a positive'} safe integer in kobo.`,
+    );
   }
 }
 

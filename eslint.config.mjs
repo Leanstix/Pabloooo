@@ -2,7 +2,18 @@ import tseslint from 'typescript-eslint';
 import hooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['node_modules/**', '.expo/**', 'test-results/**', 'playwright-report/**', 'coverage/**', 'dist/**', 'android/**', 'ios/**'] },
+  {
+    ignores: [
+      'node_modules/**',
+      '.expo/**',
+      'test-results/**',
+      'playwright-report/**',
+      'coverage/**',
+      'dist/**',
+      'android/**',
+      'ios/**',
+    ],
+  },
   ...tseslint.configs.recommended,
   { files: ['plugins/**/*.js'], rules: { '@typescript-eslint/no-require-imports': 'off' } },
   {
@@ -11,7 +22,10 @@ export default tseslint.config(
     rules: {
       ...hooks.configs.recommended.rules,
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
   },
 );

@@ -5,5 +5,9 @@
   "main": "index.ts",
   "types": "index.ts",
   "description": "Local Android home screen pinned shortcut module for Pabloooo",
-  "peerDependencies": { "expo": "*", "expo-modules-core": "*", "react-native": "*" }
+  "peerDependencies": {
+    "expo": "*",
+    "expo-modules-core": "*",
+    "react-native": "*"
+  }
 }

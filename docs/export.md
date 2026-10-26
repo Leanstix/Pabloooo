@@ -4,12 +4,12 @@
 
 ## Workbook contract
 
-| Sheet | Meaning |
-| --- | --- |
-| Overview | Recorded income, spending and net, cached `SUMIF` formulas against Transactions, largest expense categories and report methodology. |
-| Transactions | One row per active transaction in range, original IDs, parent/child/full category names, merchant, note, recurrence linkage, original ISO timestamps, numeric NGN and exact integer kobo, numeric UTC date. |
-| Categories | Direct category allocations, each transaction counted once, share of recorded income. Percentages are blank when income is zero. |
-| Recurring | Actual daily/weekly/monthly/yearly rule frequency, per-occurrence amount, next due, active/paused status, separately counted confirmed transactions in report range. No assumed or normalized payments. |
+| Sheet            | Meaning                                                                                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview         | Recorded income, spending and net, cached `SUMIF` formulas against Transactions, largest expense categories and report methodology.                                                                                          |
+| Transactions     | One row per active transaction in range, original IDs, parent/child/full category names, merchant, note, recurrence linkage, original ISO timestamps, numeric NGN and exact integer kobo, numeric UTC date.                  |
+| Categories       | Direct category allocations, each transaction counted once, share of recorded income. Percentages are blank when income is zero.                                                                                             |
+| Recurring        | Actual daily/weekly/monthly/yearly rule frequency, per-occurrence amount, next due, active/paused status, separately counted confirmed transactions in report range. No assumed or normalized payments.                      |
 | Budget vs Actual | Current cycle from the configured start day using the same local-calendar domain functions as the app. Independent of report range. Parent-category actuals include descendants. Overlapping budget rows must not be summed. |
 
 A supplied report range is `[start, end)`: start inclusive, end exclusive. Omitting the range exports all active recorded history. The workbook includes the exact range and generation timestamp. The current cycle is computed at generation time. Cash-flow balance means income minus spending in the report, not a bank balance. Transaction tombstones are excluded; the app's separate backup flow preserves full state.

@@ -19,7 +19,9 @@ describe('repository lifecycle', () => {
     await repository.load();
     const saving = repository.save(fixtureState());
     const closing = repository.close();
-    await saving; await closing; await repository.close();
+    await saving;
+    await closing;
+    await repository.close();
     expect(database.row?.revision).toBe(0);
     expect(database.closed).toBe(1);
     await expect(repository.load()).rejects.toThrow('closed');

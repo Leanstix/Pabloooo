@@ -14,12 +14,23 @@ if (process.platform === 'linux') {
   const output = join(tmpdir(), `pabloooo-ui-chromium-${version}`);
   const executable = join(output, 'chromium');
   await mkdir(output, { recursive: true });
-  if ((await stat(executable).catch(() => null))?.size < 1000000 || !(await stat(executable).catch(() => null))) {
-    await pipeline(createReadStream(join(root, 'bin/chromium.br')), createBrotliDecompress(), createWriteStream(executable));
+  if (
+    (await stat(executable).catch(() => null))?.size < 1000000 ||
+    !(await stat(executable).catch(() => null))
+  ) {
+    await pipeline(
+      createReadStream(join(root, 'bin/chromium.br')),
+      createBrotliDecompress(),
+      createWriteStream(executable),
+    );
     await chmod(executable, 0o700);
     for (const name of ['swiftshader', 'fonts']) {
       const archive = join(output, `${name}.tar`);
-      await pipeline(createReadStream(join(root, `bin/${name}.tar.br`)), createBrotliDecompress(), createWriteStream(archive));
+      await pipeline(
+        createReadStream(join(root, `bin/${name}.tar.br`)),
+        createBrotliDecompress(),
+        createWriteStream(archive),
+      );
       execFileSync('tar', ['--no-same-owner', '-xf', archive, '-C', output]);
     }
   }
@@ -27,5 +38,11 @@ if (process.platform === 'linux') {
   env.LD_LIBRARY_PATH = [output, env.LD_LIBRARY_PATH].filter(Boolean).join(':');
   env.FONTCONFIG_PATH = join(output, 'fonts');
 }
-const child = spawn(process.execPath, ['node_modules/@playwright/test/cli.js', 'test', ...process.argv.slice(2)], { env, stdio: 'inherit' });
-child.on('exit', code => { process.exitCode = code ?? 1; });
+const child = spawn(
+  process.execPath,
+  ['node_modules/@playwright/test/cli.js', 'test', ...process.argv.slice(2)],
+  { env, stdio: 'inherit' },
+);
+child.on('exit', (code) => {
+  process.exitCode = code ?? 1;
+});

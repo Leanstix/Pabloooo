@@ -2,7 +2,17 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { transpileModule, ModuleKind, ScriptTarget } from 'typescript';
 import { describe, expect, it } from 'vitest';
-import { isDate, isTimestamp, addMonths, nextDueDate, cycleRange, cycleKey, reportRange, inclusiveRange, inRange } from '../../src/domain/dates';
+import {
+  isDate,
+  isTimestamp,
+  addMonths,
+  nextDueDate,
+  cycleRange,
+  cycleKey,
+  reportRange,
+  inclusiveRange,
+  inRange,
+} from '../../src/domain/dates';
 
 describe('calendar arithmetic', () => {
   it('validates actual leap days rather than JavaScript date rollover', () => {
@@ -16,7 +26,15 @@ describe('calendar arithmetic', () => {
 
 it('accepts explicit timestamp offsets and rejects invalid hours minutes seconds and dates', () => {
   expect(isTimestamp('2026-10-26T23:59:59.999+01:00')).toBe(true);
-  for (const value of ['2026-02-30T12:00:00Z', '2026-10-26T24:00:00Z', '2026-10-26T12:60:00Z', '2026-10-26T12:00:60Z', '2026-10-26T12:00:00', '2026-10-26T12:00:00+25:00']) expect(isTimestamp(value), value).toBe(false);
+  for (const value of [
+    '2026-02-30T12:00:00Z',
+    '2026-10-26T24:00:00Z',
+    '2026-10-26T12:60:00Z',
+    '2026-10-26T12:00:60Z',
+    '2026-10-26T12:00:00',
+    '2026-10-26T12:00:00+25:00',
+  ])
+    expect(isTimestamp(value), value).toBe(false);
 });
 
 it('advances daily weekly monthly and yearly dates across actual month lengths', () => {
@@ -42,7 +60,10 @@ it('uses the actual clamped start date as the budget cycle key', () => {
   expect(cycleKey('2026-02-28', 31)).toBe('2026-02-28');
   expect(cycleKey('2026-03-30', 31)).toBe('2026-02-28');
   expect(cycleKey('2026-03-31', 31)).toBe('2026-03-31');
-  expect(cycleRange('2026-02-28', 31)).toEqual({ start: new Date(2026, 1, 28).toISOString(), end: new Date(2026, 2, 31).toISOString() });
+  expect(cycleRange('2026-02-28', 31)).toEqual({
+    start: new Date(2026, 1, 28).toISOString(),
+    end: new Date(2026, 2, 31).toISOString(),
+  });
 });
 
 it('rejects invalid cycle starts and dates before generating a range', () => {
@@ -53,10 +74,22 @@ it('rejects invalid cycle starts and dates before generating a range', () => {
 
 it('creates Monday weeks and complete month quarter and year ranges', () => {
   const iso = (y: number, m: number, d: number) => new Date(y, m - 1, d).toISOString();
-  expect(reportRange('week', '2026-11-01')).toEqual({ start: iso(2026, 10, 26), end: iso(2026, 11, 2) });
-  expect(reportRange('month', '2024-02-29')).toEqual({ start: iso(2024, 2, 1), end: iso(2024, 3, 1) });
-  expect(reportRange('quarter', '2026-12-15')).toEqual({ start: iso(2026, 10, 1), end: iso(2027, 1, 1) });
-  expect(reportRange('year', '2026-10-26')).toEqual({ start: iso(2026, 1, 1), end: iso(2027, 1, 1) });
+  expect(reportRange('week', '2026-11-01')).toEqual({
+    start: iso(2026, 10, 26),
+    end: iso(2026, 11, 2),
+  });
+  expect(reportRange('month', '2024-02-29')).toEqual({
+    start: iso(2024, 2, 1),
+    end: iso(2024, 3, 1),
+  });
+  expect(reportRange('quarter', '2026-12-15')).toEqual({
+    start: iso(2026, 10, 1),
+    end: iso(2027, 1, 1),
+  });
+  expect(reportRange('year', '2026-10-26')).toEqual({
+    start: iso(2026, 1, 1),
+    end: iso(2027, 1, 1),
+  });
 });
 
 it('includes the entire selected last day without including the next midnight', () => {
@@ -70,13 +103,25 @@ it('includes the entire selected last day without including the next midnight', 
 it('counts calendar days across spring and fall DST without fixed 24-hour assumptions', () => {
   // Node worker threads cannot reliably change their timezone after startup.
   const source = readFileSync(new URL('../../src/domain/dates.ts', import.meta.url), 'utf8');
-  const code = transpileModule(source, { compilerOptions: { module: ModuleKind.CommonJS, target: ScriptTarget.ES2022 } }).outputText;
+  const code = transpileModule(source, {
+    compilerOptions: { module: ModuleKind.CommonJS, target: ScriptTarget.ES2022 },
+  }).outputText;
   const probe = `const api={};new Function('exports',${JSON.stringify(code)})(api);
     const spring=api.reportRange('day','2026-03-08');
     const fall=api.reportRange('day','2026-11-01');
     console.log(JSON.stringify({spring:Date.parse(spring.end)-Date.parse(spring.start),
       fall:Date.parse(fall.end)-Date.parse(fall.start),
       next:api.addDays('2026-03-08',1), key:api.cycleKey('2026-03-09T02:00:00Z',9)}));`;
-  const result = JSON.parse(execFileSync(process.execPath, ['-e', probe], { env: { ...process.env, TZ: 'America/New_York' }, encoding: 'utf8' }));
-  expect(result).toEqual({ spring: 23 * 3600000, fall: 25 * 3600000, next: '2026-03-09', key: '2026-02-09' });
+  const result = JSON.parse(
+    execFileSync(process.execPath, ['-e', probe], {
+      env: { ...process.env, TZ: 'America/New_York' },
+      encoding: 'utf8',
+    }),
+  );
+  expect(result).toEqual({
+    spring: 23 * 3600000,
+    fall: 25 * 3600000,
+    next: '2026-03-09',
+    key: '2026-02-09',
+  });
 });

@@ -6,7 +6,9 @@ import { fixtureState } from './fixtures';
 it('rejects changed contents, unsupported versions and malformed JSON', () => {
   const envelope = JSON.parse(serializeBackup(fixtureState(), validateFinanceState));
   envelope.data.settings.currency = 'USD';
-  expect(() => parseBackup(JSON.stringify(envelope), validateFinanceState)).toThrow('incomplete or has changed');
+  expect(() => parseBackup(JSON.stringify(envelope), validateFinanceState)).toThrow(
+    'incomplete or has changed',
+  );
   envelope.checksum = checksum(JSON.stringify(envelope.data));
   expect(() => parseBackup(JSON.stringify(envelope), validateFinanceState)).toThrow('NGN');
   envelope.version = 99;

@@ -1,4 +1,7 @@
-export interface LocalNotificationPermission { granted: boolean; canAskAgain: boolean }
+export interface LocalNotificationPermission {
+  granted: boolean;
+  canAskAgain: boolean;
+}
 export interface NotificationPermissionPort {
   /** Null represents Android versions without notification channels. */
   createChannel(): Promise<{ importance: number } | null>;

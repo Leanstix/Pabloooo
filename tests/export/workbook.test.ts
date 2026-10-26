@@ -11,20 +11,38 @@ async function read(state = fixture(), range?: { start: string; end: string }) {
   return { bytes, workbook, files: unzipSync(bytes) };
 }
 describe('offline XLSX export', () => {
-  beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-26T12:00:00Z')); });
-  afterEach(() => { vi.useRealTimers(); });
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   it('opens with a real spreadsheet reader and exposes five deliberate sheets', async () => {
     const { workbook } = await read();
-    expect(workbook.worksheets.map(sheet => sheet.name)).toEqual(['Overview', 'Transactions', 'Categories', 'Recurring', 'Budget vs Actual']);
+    expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual([
+      'Overview',
+      'Transactions',
+      'Categories',
+      'Recurring',
+      'Budget vs Actual',
+    ]);
     const transactions = workbook.getWorksheet('Transactions')!;
-    expect(transactions.views[0]).toMatchObject({ state: 'frozen', ySplit: 4, showGridLines: false });
+    expect(transactions.views[0]).toMatchObject({
+      state: 'frozen',
+      ySplit: 4,
+      showGridLines: false,
+    });
     expect(transactions.autoFilter).toBe('A4:N7');
     expect(transactions.getColumn('I').width).toBe(38);
   });
   it('reconciles income, expenses, net and cached cross-sheet formulas', async () => {
     const { workbook } = await read();
     const overview = workbook.getWorksheet('Overview')!;
-    expect(overview.getCell('B5').value).toEqual({ formula: 'SUMIF(Transactions!B5:B7,"income",Transactions!C5:C7)', result: 100000 });
+    expect(overview.getCell('B5').value).toEqual({
+      formula: 'SUMIF(Transactions!B5:B7,"income",Transactions!C5:C7)',
+      result: 100000,
+    });
     expect(overview.getCell('B6').result).toBe(2200);
     expect(overview.getCell('B7').value).toEqual({ formula: 'B5-B6', result: 97800 });
     expect(overview.getCell('B8').result).toBe(0.978);
@@ -37,7 +55,9 @@ describe('offline XLSX export', () => {
     expect(sheet.getCell('G6').value).toBe(120055);
     expect(sheet.getCell('H6').value).toEqual(new Date('2026-10-01T12:00:00Z'));
     expect(sheet.getCell('K6').value).toBe('2026-10-01T12:00:00.000Z');
-    expect(strFromU8(files['xl/worksheets/sheet2.xml']!)).toContain('<c r="C6" s="4" t="n"><v>1200.55</v></c>');
+    expect(strFromU8(files['xl/worksheets/sheet2.xml']!)).toContain(
+      '<c r="C6" s="4" t="n"><v>1200.55</v></c>',
+    );
   });
   it('keeps formula-like notes literal and round-trips XML metacharacters and Unicode', async () => {
     const state = fixture();
@@ -61,7 +81,10 @@ describe('offline XLSX export', () => {
       transaction('end', 'expense', 999, 'food', '2026-10-02T00:00:00Z'),
       { ...transaction('deleted', 'income', 5000, 'salary'), deletedAt: '2026-10-02T00:00:00Z' },
     ];
-    const { workbook } = await read(state, { start: '2026-10-01T00:00:00Z', end: '2026-10-02T00:00:00Z' });
+    const { workbook } = await read(state, {
+      start: '2026-10-01T00:00:00Z',
+      end: '2026-10-02T00:00:00Z',
+    });
     const sheet = workbook.getWorksheet('Transactions')!;
     expect(sheet.rowCount).toBe(6);
     expect(sheet.getCell('A5').value).toBe('start');
@@ -69,7 +92,10 @@ describe('offline XLSX export', () => {
     expect(workbook.getWorksheet('Overview')!.getCell('B7').result).toBe(1.5);
   });
   it('opens an empty state with zero cash flow and no undefined percentages', async () => {
-    const state = fixture(); state.transactions = []; state.recurringRules = []; state.budgets = [];
+    const state = fixture();
+    state.transactions = [];
+    state.recurringRules = [];
+    state.budgets = [];
     const { workbook, files } = await read(state);
     const overview = workbook.getWorksheet('Overview')!;
     expect(overview.getCell('B5').result).toBe(0);
@@ -85,17 +111,22 @@ describe('offline XLSX export', () => {
     expect(categories.getCell('A6').value).toBe('Food & drink');
     expect(categories.getCell('B6').value).toBe('Dining');
     expect(categories.getCell('D6').value).toBe(1200.55);
-    expect(categories.getCell('E6').value).toEqual({ formula: 'D6/Overview!$B$5', result: 0.0120055 });
+    expect(categories.getCell('E6').value).toEqual({
+      formula: 'D6/Overview!$B$5',
+      result: 0.0120055,
+    });
     expect(categories.getCell('D7').value).toBe(999.45);
     expect(categories.rowCount).toBe(7);
   });
   it('leaves category share empty when there is no recorded income', async () => {
-    const state = fixture(); state.transactions = state.transactions.filter(tx => tx.kind === 'expense');
+    const state = fixture();
+    state.transactions = state.transactions.filter((tx) => tx.kind === 'expense');
     const { workbook } = await read(state);
     expect(workbook.getWorksheet('Categories')!.getCell('E5').value).toBeNull();
   });
   it('exports actual weekly configuration without inventing monthly payments', async () => {
-    const state = fixture(); state.transactions[1]!.recurringId = 'rule-1';
+    const state = fixture();
+    state.transactions[1]!.recurringId = 'rule-1';
     const { workbook } = await read(state);
     const recurring = workbook.getWorksheet('Recurring')!;
     expect(recurring.getCell('C5').value).toBe(500);
