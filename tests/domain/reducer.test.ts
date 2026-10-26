@@ -117,3 +117,12 @@ it('creates one occurrence and advances its due date once under replay', () => {
   expect(apply(next, action)).toBe(next);
   expect(next.revision).toBe(state.revision + 1);
 });
+
+it('does not advance recurrence when confirmation fails validation', () => {
+  let state = apply(seed(), { type: 'transaction.save', value: entry() });
+  state = apply(state, { type: 'recurring.save', value: { id: 'r1', name: 'Rent', kind: 'expense', amountKobo: 1000, categoryId: 'category-housing', frequency: 'monthly', nextDueDate: '2026-10-27', active: true } });
+  const before = JSON.stringify(state);
+  expect(() => apply(state, { type: 'recurring.confirm', id: 'r1', transactionId: 't1', occurredAt: now })).toThrow(/already in use/);
+  expect(() => apply(state, { type: 'recurring.confirm', id: 'r1', transactionId: 'new', occurredAt: now })).toThrow(/not due/);
+  expect(JSON.stringify(state)).toBe(before);
+});
