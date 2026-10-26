@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Alert, AppState } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import type { AppAction } from '../domain/types';
@@ -10,43 +10,31 @@ import { FinanceEngine } from './engine';
 import { confirmRestore } from './confirm';
 import { errorMessage } from './errors';
 import { createActionService } from './actions';
+import { createSessionManager } from './session';
 
 const seed = initialState('loading');
 const bootSnapshot = { state: seed, ready: false, busy: true, error: null };
 const noopSubscribe = () => () => undefined;
 const getBootSnapshot = () => bootSnapshot;
+const sessions = createSessionManager();
 
 export function useFinanceController(): { controller: AppController; retry(): void; fatal: string | null } {
   const [engine, setEngine] = useState<FinanceEngine | null>(null);
   const [fatal, setFatal] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const alive = useRef(true);
-  const initializationAttempt = useRef(0);
   const snapshot = useSyncExternalStore(engine?.subscribe ?? noopSubscribe, engine?.getSnapshot ?? getBootSnapshot);
   const actions = useMemo(() => engine ? createActionService(engine, configureReminders) : null, [engine]);
 
   useEffect(() => {
-    alive.current = true;
-    const token = ++initializationAttempt.current;
-    let close: (() => Promise<void>) | undefined;
-    void (async () => {
-      try {
-        const repository = await createRepository();
-        close = () => repository.close();
-        const next = new FinanceEngine(repository, Crypto.randomUUID());
-        await next.initialize();
-        if (!alive.current || token !== initializationAttempt.current) {
-          await repository.close();
-          return;
-        }
+    let cancelled = false;
+    const session = sessions.open(async () => new FinanceEngine(await createRepository(), Crypto.randomUUID()));
+    void session.ready.then(next => {
+      if (!cancelled && next) {
         setEngine(next);
         setFatal(null);
-      } catch (error) {
-        if (alive.current && token === initializationAttempt.current) setFatal(errorMessage(error));
-        await close?.().catch(() => undefined);
       }
-    })();
-    return () => { alive.current = false; void close?.().catch(() => undefined); };
+    }).catch(error => { if (!cancelled) setFatal(errorMessage(error)); });
+    return () => { cancelled = true; session.cancel(); };
   }, [attempt]);
 
   // Refresh schedules after a timezone change while the app was in the background.
@@ -81,11 +69,17 @@ export function useFinanceController(): { controller: AppController; retry(): vo
     dispatch,
     setReminders: enabled => dispatch({ type: 'settings.update', value: { remindersEnabled: enabled } }),
     exportSpreadsheet: range => run(async () => {
-      const state = requireEngine().getSnapshot().state;
+      requireEngine();
+      if (!actions) throw new Error('Wait until your records finish loading.');
+      const state = await actions.readState();
       const bytes = await generateWorkbook(state, range);
       await shareSpreadsheet(bytes, `Pabloooo-report-${new Date().toISOString().slice(0, 10)}.xlsx`);
     }),
-    exportBackup: () => run(async () => exportBackup(requireEngine().getSnapshot().state)),
+    exportBackup: () => run(async () => {
+      requireEngine();
+      if (!actions) throw new Error('Wait until your records finish loading.');
+      await exportBackup(await actions.readState());
+    }),
     importBackup: () => run(async () => {
       requireEngine();
       const imported = await pickBackup();
