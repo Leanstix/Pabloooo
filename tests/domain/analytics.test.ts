@@ -13,3 +13,12 @@ describe('financial analytics', () => {
     expect(categoryBreakdown(seed(), range).every(row => row.amountKobo === 0 && row.percentOfIncome === null)).toBe(true);
   });
 });
+
+it('reconciles income expenses balance and count after soft deletion and restore', () => {
+  let state = add(add(seed()), { kind: 'income', categoryId: 'category-salary', amountKobo: 250000 });
+  expect(summarize(state, range)).toEqual({ incomeKobo: 250000, expenseKobo: 50000, balanceKobo: 200000, count: 2 });
+  state = reduceFinance(state, { type: 'transaction.delete', id: 't0' }, now);
+  expect(summarize(state, range)).toEqual({ incomeKobo: 250000, expenseKobo: 0, balanceKobo: 250000, count: 1 });
+  state = reduceFinance(state, { type: 'transaction.restore', id: 't0' }, now);
+  expect(summarize(state, range).expenseKobo).toBe(50000);
+});
