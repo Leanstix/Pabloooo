@@ -16,7 +16,7 @@ export interface Budget {
 }
 export interface RecurringRule {
   id: string; name: string; kind: EntryKind; amountKobo: number; categoryId: string;
-  frequency: Frequency; nextDueDate: string; active: boolean; createdAt: string; updatedAt: string;
+  frequency: Frequency; nextDueDate: string; anchorDate?: string; active: boolean; createdAt: string; updatedAt: string;
 }
 export interface SavingsGoal {
   id: string; name: string; targetKobo: number; savedKobo: number;

@@ -57,11 +57,15 @@ export function addMonths(date: string, count: number): string {
   const nextMonth = ((index % 12) + 12) % 12 + 1;
   return ymd(nextYear, nextMonth, Math.min(day, daysInMonth(nextYear, nextMonth)));
 }
-export function nextDueDate(date: string, frequency: Frequency): string {
+export function nextDueDate(date: string, frequency: Frequency, anchorDate: string = date): string {
+  if (!isDate(anchorDate)) throw new Error('Invalid recurrence anchor.');
   if (frequency === 'daily') return addDays(date, 1);
   if (frequency === 'weekly') return addDays(date, 7);
-  if (frequency === 'monthly') return addMonths(date, 1);
-  if (frequency === 'yearly') return addMonths(date, 12);
+  if (frequency === 'monthly' || frequency === 'yearly') {
+    const candidate = addMonths(date, frequency === 'monthly' ? 1 : 12);
+    const [year, month] = candidate.split('-').map(Number) as [number, number];
+    return ymd(year, month, Math.min(Number(anchorDate.slice(8)), daysInMonth(year, month)));
+  }
   throw new Error('Unknown recurring frequency.');
 }
 export function validateRange(range: DateRange): DateRange {

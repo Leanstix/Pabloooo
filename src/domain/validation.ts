@@ -7,7 +7,9 @@ function fail(message: string): never { throw new Error(`Invalid finance data: $
 function object(value: unknown, keys: string[], label: string): RecordValue {
   if (!value || typeof value !== 'object' || Array.isArray(value) || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) fail(`${label} must be an object.`);
   const record = value as RecordValue;
-  if (Object.keys(record).length !== keys.length || keys.some(key => !Object.prototype.hasOwnProperty.call(record, key))) fail(`${label} has missing or unexpected fields.`);
+  const required = keys.filter(key => !key.endsWith('?'));
+  const allowed = keys.map(key => key.replace(/\?$/, ''));
+  if (Object.keys(record).some(key => !allowed.includes(key)) || required.some(key => !Object.prototype.hasOwnProperty.call(record, key))) fail(`${label} has missing or unexpected fields.`);
   return record;
 }
 function string(value: unknown, max: number, label: string, nonempty = false): asserts value is string {
@@ -61,13 +63,14 @@ export function validateFinanceState(value: unknown): FinanceState {
     const category = categoryMap.get(row.categoryId);
     if (!category || (expenseOnly ? category.kind !== 'expense' : row.kind !== category.kind)) fail('Category reference is missing or has the wrong kind.');
   };
-  const rules = rows(state.recurringRules, 5000, [...common, 'name', 'kind', 'amountKobo', 'categoryId', 'frequency', 'nextDueDate', 'active'], 'recurring rule');
+  const rules = rows(state.recurringRules, 5000, [...common, 'name', 'kind', 'amountKobo', 'categoryId', 'frequency', 'nextDueDate', 'anchorDate?', 'active'], 'recurring rule');
   const ruleMap = new Map(rules.map(row => [row.id, row]));
   for (const rule of rules) {
     string(rule.name, 200, 'Recurring name', true); kind(rule.kind); reference(rule);
     assertKobo(rule.amountKobo, 'Recurring amount', false);
     oneOf(rule.frequency, ['daily', 'weekly', 'monthly', 'yearly'], 'frequency');
     if (!isDate(rule.nextDueDate)) fail('Invalid recurring due date.');
+    if (rule.anchorDate !== undefined && !isDate(rule.anchorDate)) fail('Invalid recurring anchor date.');
     bool(rule.active);
   }
   const transactions = rows(state.transactions, 100000, [...common, 'kind', 'amountKobo', 'categoryId', 'note', 'merchant', 'occurredAt', 'recurringId', 'deletedAt'], 'transaction');

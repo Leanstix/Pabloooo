@@ -73,7 +73,7 @@ export function reduceFinance(state: FinanceState, action: AppAction, now: Date 
     case 'recurring.save': {
       const old = state.recurringRules.find(row => row.id === action.value.id);
       if (action.value.active || !old || old.categoryId !== action.value.categoryId) activeCategory(state, action.value.categoryId, action.value.kind);
-      next = { ...state, recurringRules: upsert(state.recurringRules, { ...action.value, createdAt: old?.createdAt ?? at, updatedAt: at }) }; break;
+      next = { ...state, recurringRules: upsert(state.recurringRules, { ...action.value, anchorDate: old && old.nextDueDate === action.value.nextDueDate ? (old.anchorDate ?? old.nextDueDate) : action.value.nextDueDate, createdAt: old?.createdAt ?? at, updatedAt: at }) }; break;
     }
     case 'recurring.delete':
       required(state.recurringRules, action.id, 'Recurring rule');
@@ -88,7 +88,7 @@ export function reduceFinance(state: FinanceState, action: AppAction, now: Date 
       if (!rule.active) throw new Error('Recurring rule is inactive.');
       activeCategory(state, rule.categoryId, rule.kind);
       if (dateOnly(action.occurredAt) < rule.nextDueDate) throw new Error('This occurrence is not due yet.');
-      const due = nextDueDate(rule.nextDueDate, rule.frequency);
+      const due = nextDueDate(rule.nextDueDate, rule.frequency, rule.anchorDate);
       next = {
         ...state,
         transactions: [...state.transactions, { id: action.transactionId, kind: rule.kind, amountKobo: rule.amountKobo, categoryId: rule.categoryId, note: rule.name, merchant: '', occurredAt: action.occurredAt, recurringId: rule.id, createdAt: at, updatedAt: at, deletedAt: null }],
