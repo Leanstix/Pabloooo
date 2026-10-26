@@ -7,13 +7,15 @@ export function createSessionManager() {
     open(factory: () => Promise<FinanceEngine>) {
       let cancelled = false;
       let engine: FinanceEngine | null = null;
+      let disposal: Promise<void> | null = null;
+      const dispose = () => engine ? (disposal ??= engine.close()) : Promise.resolve();
       const ready = queue.then(async () => {
         if (cancelled) return null;
         engine = await factory();
-        if (cancelled) { await engine.close(); return null; }
+        if (cancelled) { await dispose(); return null; }
         try { await engine.initialize(); }
-        catch (error) { await engine.close().catch(() => undefined); throw error; }
-        if (cancelled) { await engine.close(); return null; }
+        catch (error) { await dispose().catch(() => undefined); throw error; }
+        if (cancelled) { await dispose(); return null; }
         return engine;
       });
       queue = ready.then(() => undefined, () => undefined);
@@ -21,7 +23,7 @@ export function createSessionManager() {
         ready,
         cancel() {
           cancelled = true;
-          queue = queue.then(async () => { await engine?.close(); }).catch(() => undefined);
+          queue = queue.then(dispose).catch(() => undefined);
         },
       };
     },
