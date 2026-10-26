@@ -37,3 +37,12 @@ it('keeps one active day and no gap estimate for repeated same-day entries', () 
   const repeated = add(single, { amountKobo: 102 });
   expect(categoryFrequency(repeated, 'category-feeding', range)).toEqual({ count: 2, activeDays: 1, averageKobo: 102, averageGapDays: null, recurringCount: 0 });
 });
+
+it('excludes deleted entries and the exclusive end while including the exact start', () => {
+  let state = add(fresh(), { id: 'before', amountKobo: 1000, occurredAt: '2026-09-30' });
+  state = add(state, { id: 'start', amountKobo: 111, occurredAt: range.start });
+  state = add(state, { id: 'end', amountKobo: 1000, occurredAt: range.end });
+  state = add(state, { id: 'removed', amountKobo: 1000, occurredAt: '2026-10-15' });
+  state = reduceFinance(state, { type: 'transaction.delete', id: 'removed' }, now);
+  expect(categoryFrequency(state, 'category-feeding', range)).toEqual({ count: 1, activeDays: 1, averageKobo: 111, averageGapDays: null, recurringCount: 0 });
+});
