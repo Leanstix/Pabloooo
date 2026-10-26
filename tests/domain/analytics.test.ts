@@ -115,3 +115,10 @@ it('uses recent note matches and excludes deleted or archived history', () => {
   state = reduceFinance(state, { type: 'category.archive', id: 'category-feeding' }, now);
   expect(suggestCategory(state, query)).toBeNull();
 });
+
+it('calculates available daily money including today and upcoming confirmed templates', () => {
+  let state = reduceFinance(seed(), { type: 'settings.update', value: { plannedIncomeKobo: 1000000 } }, now);
+  state = add(state, { amountKobo: 400000 });
+  state = reduceFinance(state, { type: 'recurring.save', value: { id: 'bill', name: 'Bill', kind: 'expense', amountKobo: 60000, categoryId: 'category-utilities', frequency: 'monthly', nextDueDate: '2026-10-30', active: true } }, now);
+  expect(plan(state, '2026-10-26')).toMatchObject({ plannedIncomeKobo: 1000000, spentKobo: 400000, projectedExpenseKobo: 460000, remainingKobo: 540000, daysRemaining: 6, dailyAvailableKobo: 90000 });
+});
