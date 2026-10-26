@@ -39,3 +39,11 @@ it('rejects orphan parents cycles and active children of archived parents', () =
   expect(() => validateFinanceState({ ...state, categories: [...state.categories, { ...child, parentId: 'child' }] })).toThrow();
   expect(() => validateFinanceState({ ...state, categories: [...state.categories.map(row => row.id === parent.id ? { ...row, archived: true } : row), child] })).toThrow(/archived parent/);
 });
+
+it('rejects fractional kobo and malformed goals rather than coercing values', () => {
+  const state = seed();
+  const goal = { id: 'g1', name: 'Safety', targetKobo: 10000, savedKobo: 0, targetDate: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' };
+  for (const targetKobo of [0, -1, 1.5, NaN, Infinity, '100']) expect(() => validateFinanceState({ ...state, goals: [{ ...goal, targetKobo }] })).toThrow();
+  expect(() => validateFinanceState({ ...state, goals: [{ ...goal, savedKobo: -1 }] })).toThrow();
+  expect(() => validateFinanceState({ ...state, settings: { ...state.settings, plannedIncomeKobo: 1.5 } })).toThrow();
+});
