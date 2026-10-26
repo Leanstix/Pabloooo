@@ -5,6 +5,8 @@ web-build/
 /android/
 /ios/
 coverage/
+test-results/
+playwright-report/
 *.log
 *.jks
 *.keystore
