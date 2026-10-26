@@ -16,3 +16,10 @@ it('rejects misplaced commas exponent notation signs and more than two decimals'
     expect(parseMoney(input), input).toBeNull();
   }
 });
+
+it('accepts the exact safe integer boundary and rejects the next kobo', () => {
+  expect(parseMoney('90,071,992,547,409.91')).toBe(Number.MAX_SAFE_INTEGER);
+  expect(parseMoney('90,071,992,547,409.92')).toBeNull();
+  expect(parseMoney('9999999999999999999999999999999999999')).toBeNull();
+  expect(formatMoney(Number.MAX_SAFE_INTEGER)).toBe('₦90,071,992,547,409.91');
+});
