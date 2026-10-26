@@ -47,3 +47,11 @@ it('rejects fractional kobo and malformed goals rather than coercing values', ()
   expect(() => validateFinanceState({ ...state, goals: [{ ...goal, savedKobo: -1 }] })).toThrow();
   expect(() => validateFinanceState({ ...state, settings: { ...state.settings, plannedIncomeKobo: 1.5 } })).toThrow();
 });
+
+it('rejects transaction references to missing categories or recurring rules', () => {
+  const state = seed();
+  const transaction = { id: 't1', kind: 'expense', amountKobo: 100, categoryId: 'category-feeding', note: '', merchant: '', occurredAt: '2026-01-01', recurringId: null, deletedAt: null, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' };
+  expect(() => validateFinanceState({ ...state, transactions: [{ ...transaction, categoryId: 'missing' }] })).toThrow(/reference/);
+  expect(() => validateFinanceState({ ...state, transactions: [{ ...transaction, recurringId: 'missing' }] })).toThrow(/recurring rule reference/);
+  expect(() => validateFinanceState({ ...state, transactions: [{ ...transaction, kind: 'income' }] })).toThrow(/wrong kind/);
+});
