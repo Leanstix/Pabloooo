@@ -10,8 +10,8 @@ export async function shareSpreadsheet(bytes: Uint8Array, filename: string): Pro
   exportSequence += 1;
   const uri = `${privateCacheDirectory()}${Date.now()}-${exportSequence}-${filename}`;
   const file = new File(uri);
-  file.write(bytes);
   try {
+    await file.write(bytes);
     await Sharing.shareAsync(uri, { mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', dialogTitle: 'Save your Pabloooo spreadsheet' });
   } catch (error) { await removePrivateFile(uri); throw error; }
   // Keep successful handoffs in private cache for receivers to finish reading.
