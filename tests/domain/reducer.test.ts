@@ -41,3 +41,14 @@ it('requires an existing category of the same income or expense kind', () => {
   expect(() => apply(state, { type: 'transaction.save', value: entry({ categoryId: 'category-salary' }) })).toThrow();
   expect(() => apply(state, { type: 'transaction.save', value: entry({ occurredAt: '2026-02-30' }) })).toThrow();
 });
+
+it('soft deletes and restores the same transaction without losing its data', () => {
+  const state = apply(seed(), { type: 'transaction.save', value: entry() });
+  const removed = apply(state, { type: 'transaction.delete', id: 't1' });
+  expect(removed.transactions[0]?.deletedAt).not.toBeNull();
+  expect(apply(removed, { type: 'transaction.delete', id: 't1' })).toBe(removed);
+  expect(() => apply(removed, { type: 'transaction.save', value: entry() })).toThrow(/Restore/);
+  const restored = apply(removed, { type: 'transaction.restore', id: 't1' });
+  expect(restored.transactions[0]).toEqual(state.transactions[0]);
+  expect(apply(restored, { type: 'transaction.restore', id: 't1' })).toBe(restored);
+});
