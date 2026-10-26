@@ -63,3 +63,11 @@ it('blocks new archived-category entries while allowing historical edits and res
   expect(state.transactions[0]?.note).toBe('Historical correction');
   expect(state.categories.find(row => row.id === 'category-feeding')?.archived).toBe(true);
 });
+
+it('creates a subcategory but rejects grandchildren and self-parenting', () => {
+  const value = { id: 'snacks', name: 'Snacks', kind: 'expense' as const, parentId: 'category-feeding', color: '#123456', icon: 'cafe', archived: false };
+  const state = apply(seed(), { type: 'category.save', value });
+  expect(state.categories.find(row => row.id === 'snacks')?.parentId).toBe('category-feeding');
+  expect(() => apply(state, { type: 'category.save', value: { ...value, id: 'crisps', name: 'Crisps', parentId: 'snacks' } })).toThrow();
+  expect(() => apply(state, { type: 'category.save', value: { ...value, parentId: 'snacks' } })).toThrow();
+});
