@@ -17,7 +17,10 @@ export function createBackupTransfer(port: BackupTransferPort, validate: StateVa
       const text = serializeBackup(state, validate);
       if (!(await port.canShare())) throw new PlatformError('sharing-unavailable', 'Android sharing is unavailable on this device.');
       const uri = await port.writePrivate(text);
-      try { await port.share(uri); } finally { await port.removePrivate(uri); }
+      // Android receivers may read the content URI after the chooser closes.
+      // Keep successful exports in OS-managed private cache until Android reclaims them.
+      try { await port.share(uri); }
+      catch (error) { await port.removePrivate(uri); throw error; }
     },
     async pickBackup(): Promise<FinanceState | null> {
       const file = await port.pick();
