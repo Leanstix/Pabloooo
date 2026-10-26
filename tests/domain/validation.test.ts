@@ -77,3 +77,11 @@ it('accepts legacy recurring rules while rejecting invalid optional anchors', ()
   expect(() => validateFinanceState({ ...state, recurringRules: [{ ...rule, anchorDate: '2026-02-30' }] })).toThrow(/anchor/);
   expect(() => validateFinanceState({ ...state, recurringRules: [{ ...rule, anchorDate: '2026-01-31' }] })).not.toThrow();
 });
+
+it('rejects prototype-bearing objects and string boolean settings', () => {
+  class FakeState { schemaVersion = 1; }
+  expect(() => validateFinanceState(new FakeState())).toThrow(/object/);
+  expect(() => validateFinanceState(null)).toThrow(/object/);
+  expect(() => validateFinanceState([])).toThrow(/object/);
+  expect(() => validateFinanceState({ ...seed(), settings: { ...seed().settings, remindersEnabled: 'false' } })).toThrow(/boolean/);
+});
