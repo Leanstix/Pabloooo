@@ -174,3 +174,9 @@ it('reports missing IDs for delete restore and archive commands', () => {
   for (const action of actions) expect(() => apply(state, action)).toThrow(/does not exist/);
   expect(state.revision).toBe(0);
 });
+
+it('rejects a safe individual amount if the income ledger sum would overflow', () => {
+  const state = apply(seed(), { type: 'transaction.save', value: entry({ kind: 'income', categoryId: 'category-salary', amountKobo: Number.MAX_SAFE_INTEGER }) });
+  expect(() => apply(state, { type: 'transaction.save', value: entry({ id: 'second', kind: 'income', categoryId: 'category-salary', amountKobo: 1 }) })).toThrow(/safe range/);
+  expect(state.transactions).toHaveLength(1);
+});
