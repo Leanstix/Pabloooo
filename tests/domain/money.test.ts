@@ -30,3 +30,10 @@ it('rejects overflow during summation but allows safe cancellation', () => {
   expect(() => sumKobo([Number.MIN_SAFE_INTEGER, -1])).toThrow(/safe range/);
   expect(() => sumKobo([0.1, 0.2])).toThrow();
 });
+
+it('allows zero settings while requiring positive transaction amounts', () => {
+  expect(() => assertKobo(0)).not.toThrow();
+  expect(() => assertKobo(0, 'Transaction', false)).toThrow(/positive/);
+  for (const value of [-1, 1.1, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1, '100', null]) expect(() => assertKobo(value)).toThrow();
+  expect(formatMoney(0)).toBe('₦0.00');
+});
