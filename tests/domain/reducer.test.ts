@@ -71,3 +71,11 @@ it('creates a subcategory but rejects grandchildren and self-parenting', () => {
   expect(() => apply(state, { type: 'category.save', value: { ...value, id: 'crisps', name: 'Crisps', parentId: 'snacks' } })).toThrow();
   expect(() => apply(state, { type: 'category.save', value: { ...value, parentId: 'snacks' } })).toThrow();
 });
+
+it('rejects moving a parent below its child or below an income category', () => {
+  const state = apply(seed(), { type: 'category.save', value: { id: 'snacks', name: 'Snacks', kind: 'expense', parentId: 'category-feeding', color: '#123456', icon: 'cafe', archived: false } });
+  const parent = state.categories.find(row => row.id === 'category-feeding')!;
+  const { createdAt: _created, updatedAt: _updated, ...value } = parent;
+  expect(() => apply(state, { type: 'category.save', value: { ...value, parentId: 'snacks' } })).toThrow();
+  expect(() => apply(state, { type: 'category.save', value: { ...value, parentId: 'category-salary' } })).toThrow();
+});
