@@ -20,3 +20,13 @@ describe('actual category activity frequency', () => {
     expect(() => categoryFrequency(fresh(), 'category-feeding', { start: range.end, end: range.start })).toThrow(/range/);
   });
 });
+
+it('includes direct and child entries while keeping child-only queries scoped', () => {
+  let state = reduceFinance(fresh(), { type: 'category.save', value: { id: 'snacks', name: 'Snacks', kind: 'expense', parentId: 'category-feeding', color: '#123456', icon: 'cafe', archived: false } }, now);
+  state = add(state, { amountKobo: 100, occurredAt: '2026-10-01' });
+  state = add(state, { amountKobo: 200, occurredAt: '2026-10-03', categoryId: 'snacks' });
+  state = add(state, { amountKobo: 300, occurredAt: '2026-10-07', categoryId: 'snacks' });
+  state = add(state, { amountKobo: 999, categoryId: 'category-transportation' });
+  expect(categoryFrequency(state, 'category-feeding', range)).toEqual({ count: 3, activeDays: 3, averageKobo: 200, averageGapDays: 3, recurringCount: 0 });
+  expect(categoryFrequency(state, 'snacks', range)).toEqual({ count: 2, activeDays: 2, averageKobo: 250, averageGapDays: 4, recurringCount: 0 });
+});
