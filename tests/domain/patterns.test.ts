@@ -30,3 +30,10 @@ it('includes direct and child entries while keeping child-only queries scoped', 
   expect(categoryFrequency(state, 'category-feeding', range)).toEqual({ count: 3, activeDays: 3, averageKobo: 200, averageGapDays: 3, recurringCount: 0 });
   expect(categoryFrequency(state, 'snacks', range)).toEqual({ count: 2, activeDays: 2, averageKobo: 250, averageGapDays: 4, recurringCount: 0 });
 });
+
+it('keeps one active day and no gap estimate for repeated same-day entries', () => {
+  const single = add(fresh(), { amountKobo: 101 });
+  expect(categoryFrequency(single, 'category-feeding', range)).toEqual({ count: 1, activeDays: 1, averageKobo: 101, averageGapDays: null, recurringCount: 0 });
+  const repeated = add(single, { amountKobo: 102 });
+  expect(categoryFrequency(repeated, 'category-feeding', range)).toEqual({ count: 2, activeDays: 1, averageKobo: 102, averageGapDays: null, recurringCount: 0 });
+});
