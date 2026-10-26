@@ -55,3 +55,10 @@ it('rejects transaction references to missing categories or recurring rules', ()
   expect(() => validateFinanceState({ ...state, transactions: [{ ...transaction, recurringId: 'missing' }] })).toThrow(/recurring rule reference/);
   expect(() => validateFinanceState({ ...state, transactions: [{ ...transaction, kind: 'income' }] })).toThrow(/wrong kind/);
 });
+
+it('rejects oversized arrays and excessively long category text', () => {
+  const state = seed();
+  expect(() => validateFinanceState({ ...state, categories: Array(2001).fill(state.categories[0]) })).toThrow(/size/);
+  expect(() => validateFinanceState({ ...state, categories: state.categories.map((row, i) => i ? row : { ...row, name: 'a'.repeat(101) }) })).toThrow(/name/);
+  expect(() => validateFinanceState({ ...state, categories: state.categories.map((row, i) => i ? row : { ...row, color: 'red' }) })).toThrow(/color/);
+});
