@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, ViewProps } from 'react-native';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 export function Enter({ children, delay = 0, style }: ViewProps & { delay?: number }) {
   const reduced = useReducedMotion();
-  const progress = useRef(new Animated.Value(1)).current;
+  const [progress] = useState(() => new Animated.Value(1));
   useEffect(() => {
     if (reduced) { progress.setValue(1); return; }
     progress.setValue(0);
