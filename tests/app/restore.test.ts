@@ -21,7 +21,8 @@ describe('backup restore integration', () => {
     const engine = new FinanceEngine(repository, 'phone');
     await engine.initialize();
     await engine.dispatch({ type: 'transaction.save', value: entry('local') });
-    await expect(engine.restore({ ...fresh(), categories: [] })).rejects.toThrow();
+    const invalid = { ...fresh(), settings: { ...fresh().settings, currency: 'USD' } };
+    await expect(engine.restore(invalid)).rejects.toThrow();
     expect(engine.getSnapshot().state.transactions[0]?.id).toBe('local');
   });
 });
