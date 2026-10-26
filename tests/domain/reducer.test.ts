@@ -143,3 +143,15 @@ it('detaches historical entries when deleting a recurring rule', () => {
   expect(next.recurringRules).toEqual([]);
   expect(next.transactions[0]).toMatchObject({ id: 'paid', amountKobo: 1000, recurringId: null, deletedAt: null });
 });
+
+it('saves updates and deletes goals without creating fictitious transactions', () => {
+  const value = { id: 'g1', name: 'Emergency fund', targetKobo: 10000000, savedKobo: 2500000, targetDate: '2027-12-31' };
+  let state = apply(seed(), { type: 'goal.save', value });
+  expect(state.transactions).toEqual([]);
+  state = apply(state, { type: 'goal.save', value: { ...value, savedKobo: 3000000 } });
+  expect(state.goals).toHaveLength(1);
+  expect(state.goals[0]?.savedKobo).toBe(3000000);
+  expect(() => apply(state, { type: 'goal.save', value: { ...value, savedKobo: -1 } })).toThrow();
+  expect(() => apply(state, { type: 'goal.save', value: { ...value, targetDate: '2027-02-29' } })).toThrow();
+  expect(apply(state, { type: 'goal.delete', id: 'g1' }).goals).toEqual([]);
+});
