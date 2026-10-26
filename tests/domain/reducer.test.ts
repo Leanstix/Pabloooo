@@ -52,3 +52,14 @@ it('soft deletes and restores the same transaction without losing its data', () 
   expect(restored.transactions[0]).toEqual(state.transactions[0]);
   expect(apply(restored, { type: 'transaction.restore', id: 't1' })).toBe(restored);
 });
+
+it('blocks new archived-category entries while allowing historical edits and restores', () => {
+  let state = apply(seed(), { type: 'transaction.save', value: entry() });
+  state = apply(state, { type: 'category.archive', id: 'category-feeding' });
+  expect(() => apply(state, { type: 'transaction.save', value: entry({ id: 'new' }) })).toThrow(/active/);
+  state = apply(state, { type: 'transaction.save', value: entry({ note: 'Historical correction' }) });
+  state = apply(state, { type: 'transaction.delete', id: 't1' });
+  state = apply(state, { type: 'transaction.restore', id: 't1' });
+  expect(state.transactions[0]?.note).toBe('Historical correction');
+  expect(state.categories.find(row => row.id === 'category-feeding')?.archived).toBe(true);
+});
