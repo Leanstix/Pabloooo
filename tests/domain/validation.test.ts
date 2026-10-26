@@ -69,3 +69,11 @@ it('rejects invalid calendar metadata and timestamps before entity creation', ()
     expect(() => validateFinanceState({ ...state, categories: state.categories.map((row, i) => i ? row : { ...row, updatedAt }) })).toThrow();
   }
 });
+
+it('accepts legacy recurring rules while rejecting invalid optional anchors', () => {
+  const state = seed();
+  const rule = { id: 'r1', name: 'Membership', kind: 'expense', amountKobo: 1000, categoryId: 'category-pleasure', frequency: 'monthly', nextDueDate: '2026-01-31', active: true, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' };
+  expect(() => validateFinanceState({ ...state, recurringRules: [rule] })).not.toThrow();
+  expect(() => validateFinanceState({ ...state, recurringRules: [{ ...rule, anchorDate: '2026-02-30' }] })).toThrow(/anchor/);
+  expect(() => validateFinanceState({ ...state, recurringRules: [{ ...rule, anchorDate: '2026-01-31' }] })).not.toThrow();
+});
