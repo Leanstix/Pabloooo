@@ -15,3 +15,11 @@ it('accepts explicit timestamp offsets and rejects invalid hours minutes seconds
   expect(isTimestamp('2026-10-26T23:59:59.999+01:00')).toBe(true);
   for (const value of ['2026-02-30T12:00:00Z', '2026-10-26T24:00:00Z', '2026-10-26T12:60:00Z', '2026-10-26T12:00:60Z', '2026-10-26T12:00:00', '2026-10-26T12:00:00+25:00']) expect(isTimestamp(value), value).toBe(false);
 });
+
+it('advances daily weekly monthly and yearly dates across actual month lengths', () => {
+  expect(nextDueDate('2026-12-31', 'daily')).toBe('2027-01-01');
+  expect(nextDueDate('2026-12-28', 'weekly')).toBe('2027-01-04');
+  expect(nextDueDate('2026-01-31', 'monthly')).toBe('2026-02-28');
+  expect(nextDueDate('2024-02-29', 'yearly')).toBe('2025-02-28');
+  expect(addMonths('2026-03-31', -1)).toBe('2026-02-28');
+});
