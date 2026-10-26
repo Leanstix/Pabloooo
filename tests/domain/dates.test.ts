@@ -63,3 +63,17 @@ it('includes the entire selected last day without including the next midnight', 
   expect(() => inclusiveRange('2026-10-27', '2026-10-26')).toThrow();
   expect(() => reportRange('custom', '2026-10-26')).toThrow();
 });
+
+it('counts calendar days across spring and fall DST without fixed 24-hour assumptions', () => {
+  const previous = process.env.TZ;
+  process.env.TZ = 'America/New_York';
+  try {
+    expect(addDays('2026-03-08', 1)).toBe('2026-03-09');
+    expect(addDays('2026-11-01', 1)).toBe('2026-11-02');
+    const spring = reportRange('day', '2026-03-08');
+    const fall = reportRange('day', '2026-11-01');
+    expect(Date.parse(spring.end) - Date.parse(spring.start)).toBe(23 * 3600000);
+    expect(Date.parse(fall.end) - Date.parse(fall.start)).toBe(25 * 3600000);
+    expect(cycleKey('2026-03-09T02:00:00Z', 9)).toBe('2026-02-09');
+  } finally { if (previous === undefined) delete process.env.TZ; else process.env.TZ = previous; }
+});
