@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createActionService } from '../../src/app/actions';
+import { createActionService, type ReminderConfigurator } from '../../src/app/actions';
 import { FinanceEngine } from '../../src/app/engine';
 import { fresh, memoryRepository } from './fixtures';
 
@@ -7,7 +7,7 @@ async function setup() {
   const { repository } = memoryRepository(fresh());
   const engine = new FinanceEngine(repository, 'phone');
   await engine.initialize();
-  const reminders = vi.fn(async () => undefined);
+  const reminders = vi.fn<ReminderConfigurator>(async () => undefined);
   return { engine, repository, reminders, actions: createActionService(engine, reminders) };
 }
 describe('notification and storage coordination', () => {
