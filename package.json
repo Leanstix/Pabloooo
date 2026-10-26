@@ -5,11 +5,50 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start --offline",
-    "android": "expo run:android",
+    "android": "expo run:android --variant release",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint . --max-warnings=0",
-    "check": "npm run typecheck && npm run lint && npm test"
+    "check": "npm run typecheck && npm run lint && npm test",
+    "test:ui": "node scripts/test-ui.mjs",
+    "format": "prettier --write src tests scripts modules App.tsx index.ts app.config.ts *.json *.mjs *.ts .github docs README.md",
+    "format:check": "prettier --check src tests scripts modules App.tsx index.ts app.config.ts *.json *.mjs *.ts .github docs README.md"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
+    "expo": "~58.0.19",
+    "expo-crypto": "~58.0.7",
+    "expo-document-picker": "~58.0.4",
+    "expo-file-system": "~58.0.11",
+    "expo-image-picker": "~58.0.10",
+    "expo-linear-gradient": "~58.0.3",
+    "expo-notifications": "~58.1.6",
+    "expo-sharing": "~58.0.20",
+    "expo-sqlite": "~58.0.14",
+    "expo-status-bar": "~58.0.4",
+    "expo-system-ui": "~58.0.6",
+    "fflate": "0.8.3",
+    "pablo-shortcut": "file:modules/pablo-shortcut",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-svg": "15.16.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@sparticuz/chromium": "153.0.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "esbuild": "0.28.2",
+    "eslint": "10.13.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "exceljs": "4.4.0",
+    "prettier": "3.9.10",
+    "react-dom": "19.3.0",
+    "react-native-web": "0.21.4",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.0.5"
   }
 }
