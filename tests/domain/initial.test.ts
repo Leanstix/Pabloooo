@@ -12,3 +12,10 @@ it('seeds useful categories without inventing any financial activity', () => {
     'Feeding', 'Transportation', 'Skincare', 'Giving', 'Pleasure', 'Unforeseen',
   ]));
 });
+
+it('rejects invalid installation identifiers and rolled-over initialization dates', () => {
+  expect(() => initialState('../unsafe', '2026-01-01T00:00:00Z')).toThrow(/ID/);
+  expect(() => initialState('valid', '2026-02-30T00:00:00Z')).toThrow(/time/);
+  expect(() => initialState('valid', 'tomorrow')).toThrow(/time/);
+  expect(() => initialState('valid', new Date('invalid'))).toThrow(/time/);
+});

@@ -26,9 +26,12 @@ export function isTimestamp(value: unknown): value is string {
 }
 export function isDateTime(value: unknown): value is string { return isDate(value) || isTimestamp(value); }
 export function timestamp(now: Date | string = new Date()): string {
+  if (typeof now === 'string' && !isDateTime(now)) throw new Error('Invalid current time.');
   const date = typeof now === 'string' ? new Date(now) : now;
   if (!Number.isFinite(date.getTime())) throw new Error('Invalid current time.');
-  return date.toISOString();
+  const result = date.toISOString();
+  if (!isTimestamp(result)) throw new Error('Current time is outside the supported calendar.');
+  return result;
 }
 export function epoch(value: string): number {
   if (!isDateTime(value)) throw new Error('Invalid date or timestamp.');
