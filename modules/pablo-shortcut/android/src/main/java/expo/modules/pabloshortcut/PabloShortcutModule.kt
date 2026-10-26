@@ -11,6 +11,7 @@ import android.os.Build
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
+import java.util.UUID
 
 /** All icons originate in the app's private files; no remote URL is accepted. */
 class PabloShortcutModule : Module() {
@@ -52,7 +53,8 @@ class PabloShortcutModule : Module() {
         ?: throw IllegalStateException("App launch activity unavailable")
       intent.action = Intent.ACTION_VIEW
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-      val shortcut = ShortcutInfo.Builder(context, "pabloooo.quick-open")
+      // Each user action gets a new ID so a previous pinned icon cannot silently override the chosen PNG.
+      val shortcut = ShortcutInfo.Builder(context, "pabloooo.quick-open-" + UUID.randomUUID().toString())
         .setShortLabel("Pabloooo")
         .setLongLabel("Open Pabloooo")
         .setIcon(Icon.createWithBitmap(bitmap))
