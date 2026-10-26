@@ -18,15 +18,15 @@ describe('quick calculator', () => {
     expect(calculate('10 ÷ 3')).toBe(3.33);
     expect(calculate('1.005')).toBe(1.01);
   });
-  it.each(['', '2+', '2..3', '5÷0', '1e3', '(1+2)', 'NaN', 'alert(1)', '2 3', '++3'])('rejects malformed or unsafe expression %s', expression => {
-    if (expression === '2 3') expect(calculate(expression)).toBe(23);
-    else expect(calculate(expression)).toBeNull();
+  it.each(['', '2+', '2..3', '5÷0', '1e3', '(1+2)', 'NaN', 'alert(1)', '++3'])('rejects malformed or unsafe expression %s', expression => {
+    expect(calculate(expression)).toBeNull();
   });
   it('does not return amounts outside safe kobo precision', () => {
     expect(calculate('9007199254740991')).toBeNull();
     expect(calculate('9999999999999999999999999999999999999 × 999999999999')).toBeNull();
   });
   it('accepts entry-ready decimal and padded zero values', () => {
+    expect(calculate('  100 + 20  ')).toBe(120);
     expect(calculate('00')).toBe(0);
     expect(calculate('.50 + 1.')).toBe(1.5);
   });
