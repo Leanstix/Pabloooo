@@ -33,3 +33,11 @@ it('returns to the original day after short months and leap years', () => {
   for (let year = 2025; year <= 2028; year++) leap = nextDueDate(leap, 'yearly', '2024-02-29');
   expect(leap).toBe('2028-02-29');
 });
+
+it('uses the actual clamped start date as the budget cycle key', () => {
+  expect(cycleKey('2026-02-27', 31)).toBe('2026-01-31');
+  expect(cycleKey('2026-02-28', 31)).toBe('2026-02-28');
+  expect(cycleKey('2026-03-30', 31)).toBe('2026-02-28');
+  expect(cycleKey('2026-03-31', 31)).toBe('2026-03-31');
+  expect(cycleRange('2026-02-28', 31)).toEqual({ start: new Date(2026, 1, 28).toISOString(), end: new Date(2026, 2, 31).toISOString() });
+});
