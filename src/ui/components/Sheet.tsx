@@ -1,6 +1,6 @@
 import React from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/Theme';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { Text } from './Text';

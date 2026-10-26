@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatMoney } from '../../domain';
 import { Text } from './Text';
 import { useTheme } from '../theme/Theme';

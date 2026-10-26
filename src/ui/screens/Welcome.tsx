@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { AppController } from '../../app/contracts';
 import { Text } from '../components/Text';
 import { Button } from '../components/Button';

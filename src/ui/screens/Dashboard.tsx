@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { AppController } from '../../app/contracts';
 import { cycleRange, formatMoney, summarize, plan } from '../../domain';
 import { Screen } from '../components/Screen';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text } from './Text';
 export const categoryColors = ['#2D8058', '#A65B35', '#8264AB', '#BD5262', '#337E9A', '#8A7C2B'];
 export function ColorPicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {

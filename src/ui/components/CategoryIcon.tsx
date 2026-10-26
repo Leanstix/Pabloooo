@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { Category } from '../../domain/types';
 import { useTheme } from '../theme/Theme';
 export function CategoryIcon({ category, size = 44 }: { category?: Category; size?: number }) {

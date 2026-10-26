@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Animated, Pressable, ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useTheme } from '../theme/Theme';
 import { Text } from './Text';

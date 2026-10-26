@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { AppController } from '../../app/contracts';
 import type { Category } from '../../domain/types';
 import { Screen } from '../components/Screen';

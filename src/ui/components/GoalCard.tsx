@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import type { SavingsGoal } from '../../domain/types';
 import { formatMoney } from '../../domain';
 import { Text } from './Text';
