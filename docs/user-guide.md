@@ -6,7 +6,7 @@ On Home, tap **Add expense** or **Add income**. Enter the amount, select a categ
 
 Open **More → Categories** to create your own labels, choose colours or place a category under another category. Archived categories remain attached to historical records. You can restore archived categories from the category list. Parent/child expense totals roll up without counting a transaction twice.
 
-In **Plan**, enter expected income for the current cycle. Add category budgets and savings goals. The available-per-day figure uses your plan, recorded expenses and upcoming scheduled costs. It is a planning aid, not a bank balance. Goals record money you have manually set aside; they do not create transactions. Use the spending-cut calculator to explore a smaller daily cost.
+In **Plan**, enter expected income for the current cycle. Add category budgets and savings goals. The available-per-day figure uses your plan, recorded expenses and upcoming scheduled costs. It is a planning aid, not a bank balance. Goals record money you have manually set aside; they do not create transactions. Use the spending-cut calculator to explore a smaller future cost.
 
 In **More → Recurring entries**, create schedules for bills, subscriptions or income. Confirm a due occurrence when it actually happens; the app then records the transaction and advances the next due date. Pausing a schedule stops it appearing as an upcoming active cost. It does not delete historical payments.
 
