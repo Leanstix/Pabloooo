@@ -90,3 +90,10 @@ it('forecasts confirmed-date anchors across short months without mutating the le
   expect(JSON.stringify(state)).toBe(before);
   expect(state.transactions).toHaveLength(0);
 });
+
+it('excludes paused rules and totals recurring income separately from expense', () => {
+  let state = reduceFinance(seed(), { type: 'recurring.save', value: { id: 'salary', name: 'Pay', kind: 'income', amountKobo: 100000, categoryId: 'category-salary', frequency: 'monthly', nextDueDate: '2026-10-26', active: true } }, now);
+  state = reduceFinance(state, { type: 'recurring.save', value: { id: 'paused', name: 'Paused', kind: 'expense', amountKobo: 1000, categoryId: 'category-pleasure', frequency: 'daily', nextDueDate: '2026-10-01', active: false } }, now);
+  expect(recurringSummary(state, range)).toMatchObject({ incomeKobo: 100000, expenseKobo: 0, netKobo: 100000 });
+  expect(recurringSummary(state, range).occurrences).toHaveLength(1);
+});
