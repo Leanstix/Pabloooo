@@ -88,3 +88,10 @@ it('archives child categories and deactivates their recurring rules together', (
   expect(state.recurringRules[0]?.active).toBe(false);
   expect(() => apply(state, { type: 'recurring.confirm', id: 'r1', transactionId: 't1', occurredAt: now })).toThrow(/inactive/);
 });
+
+it('prevents historical category type changes and duplicate sibling names', () => {
+  const state = apply(seed(), { type: 'transaction.save', value: entry() });
+  const value = { id: 'category-feeding', name: 'Feeding', kind: 'income' as const, parentId: null, color: '#123456', icon: 'cafe', archived: false };
+  expect(() => apply(state, { type: 'category.save', value })).toThrow(/referenced/);
+  expect(() => apply(state, { type: 'category.save', value: { ...value, id: 'copy', kind: 'expense', name: '  feeding  ' } })).toThrow(/already exists/);
+});
