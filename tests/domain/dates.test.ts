@@ -23,3 +23,13 @@ it('advances daily weekly monthly and yearly dates across actual month lengths',
   expect(nextDueDate('2024-02-29', 'yearly')).toBe('2025-02-28');
   expect(addMonths('2026-03-31', -1)).toBe('2026-02-28');
 });
+
+it('returns to the original day after short months and leap years', () => {
+  let date = nextDueDate('2026-01-31', 'monthly', '2026-01-31');
+  expect(date).toBe('2026-02-28');
+  date = nextDueDate(date, 'monthly', '2026-01-31');
+  expect(date).toBe('2026-03-31');
+  let leap = '2024-02-29';
+  for (let year = 2025; year <= 2028; year++) leap = nextDueDate(leap, 'yearly', '2024-02-29');
+  expect(leap).toBe('2028-02-29');
+});
