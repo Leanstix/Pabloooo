@@ -1,6 +1,5 @@
 import type { DateRange, Frequency } from './types';
 
-const DAY = 86_400_000;
 export function isDate(value: unknown): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const [year, month, day] = value.split('-').map(Number) as [number, number, number];
@@ -11,9 +10,10 @@ export function daysInMonth(year: number, month: number): number {
   return [4, 6, 9, 11].includes(month) ? 30 : 31;
 }
 export function dateOnly(value: string): string {
-  const date = value.slice(0, 10);
-  if (!isDate(date)) throw new Error('Invalid calendar date.');
-  return date;
+  if (isDate(value)) return value;
+  if (!isTimestamp(value)) throw new Error('Invalid calendar date.');
+  const date = new Date(value);
+  return ymd(date.getFullYear(), date.getMonth() + 1, date.getDate());
 }
 export function isTimestamp(value: unknown): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return false;
@@ -32,7 +32,12 @@ export function timestamp(now: Date | string = new Date()): string {
 }
 export function epoch(value: string): number {
   if (!isDateTime(value)) throw new Error('Invalid date or timestamp.');
-  return Date.parse(isDate(value) ? `${value}T00:00:00.000Z` : value);
+  if (!isDate(value)) return Date.parse(value);
+  const [year, month, day] = value.split('-').map(Number) as [number, number, number];
+  const date = new Date(0);
+  date.setFullYear(year, month - 1, day);
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
 }
 function ymd(year: number, month: number, day: number): string {
   if (year < 1 || year > 9999) throw new Error('Date is outside the supported calendar.');
@@ -40,7 +45,9 @@ function ymd(year: number, month: number, day: number): string {
 }
 export function addDays(date: string, count: number): string {
   if (!isDate(date) || !Number.isSafeInteger(count)) throw new Error('Invalid day arithmetic.');
-  return dateOnly(new Date(epoch(date) + count * DAY).toISOString());
+  const result = new Date(epoch(date));
+  result.setDate(result.getDate() + count);
+  return ymd(result.getFullYear(), result.getMonth() + 1, result.getDate());
 }
 export function addMonths(date: string, count: number): string {
   if (!isDate(date) || !Number.isSafeInteger(count)) throw new Error('Invalid month arithmetic.');
@@ -75,11 +82,13 @@ export function cycleRange(value: string, startDay: number): DateRange {
   const next = addMonths(anchor, 1);
   const [endYear, endMonth] = next.split('-').map(Number) as [number, number];
   return {
-    start: ymd(startYear, startMonth, Math.min(startDay, daysInMonth(startYear, startMonth))),
-    end: ymd(endYear, endMonth, Math.min(startDay, daysInMonth(endYear, endMonth))),
+    start: midnight(ymd(startYear, startMonth, Math.min(startDay, daysInMonth(startYear, startMonth)))),
+    end: midnight(ymd(endYear, endMonth, Math.min(startDay, daysInMonth(endYear, endMonth)))),
   };
 }
-export function cycleKey(value: string, startDay: number): string { return cycleRange(value, startDay).start; }
+export function cycleKey(value: string, startDay: number): string { return dateOnly(cycleRange(value, startDay).start); }
+export function midnight(date: string): string { return new Date(epoch(date)).toISOString(); }
+function calendarRange(start: string, end: string): DateRange { return { start: midnight(start), end: midnight(end) }; }
 export type ReportPeriod = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
 export function reportRange(period: ReportPeriod, value: string, custom?: DateRange): DateRange {
   const date = dateOnly(value);
@@ -88,22 +97,22 @@ export function reportRange(period: ReportPeriod, value: string, custom?: DateRa
     if (!custom) throw new Error('Custom report needs a date range.');
     return validateRange({ ...custom });
   }
-  if (period === 'day') return { start: date, end: addDays(date, 1) };
+  if (period === 'day') return calendarRange(date, addDays(date, 1));
   if (period === 'week') {
-    const weekday = new Date(epoch(date)).getUTCDay();
+    const weekday = new Date(epoch(date)).getDay();
     const start = addDays(date, -((weekday + 6) % 7));
-    return { start, end: addDays(start, 7) };
+    return calendarRange(start, addDays(start, 7));
   }
-  if (period === 'month') return { start: ymd(year, month, 1), end: addMonths(ymd(year, month, 1), 1) };
+  if (period === 'month') return calendarRange(ymd(year, month, 1), addMonths(ymd(year, month, 1), 1));
   if (period === 'quarter') {
     const start = ymd(year, Math.floor((month - 1) / 3) * 3 + 1, 1);
-    return { start, end: addMonths(start, 3) };
+    return calendarRange(start, addMonths(start, 3));
   }
-  if (period === 'year') return { start: ymd(year, 1, 1), end: ymd(year + 1, 1, 1) };
+  if (period === 'year') return calendarRange(ymd(year, 1, 1), ymd(year + 1, 1, 1));
   throw new Error('Unknown report period.');
 }
 /** Inclusive date-picker end becomes the domain's exclusive end. */
 export function inclusiveRange(start: string, end: string): DateRange {
   if (!isDate(start) || !isDate(end)) throw new Error('Choose valid calendar dates.');
-  return validateRange({ start, end: addDays(end, 1) });
+  return validateRange(calendarRange(start, addDays(end, 1)));
 }
