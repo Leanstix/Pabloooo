@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Alert, AppState } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import type { AppAction } from '../domain/types';
@@ -9,6 +9,7 @@ import type { AppController } from './contracts';
 import { FinanceEngine } from './engine';
 import { confirmRestore } from './confirm';
 import { errorMessage } from './errors';
+import { createActionService } from './actions';
 
 const seed = initialState('loading');
 const bootSnapshot = { state: seed, ready: false, busy: true, error: null };
@@ -22,6 +23,7 @@ export function useFinanceController(): { controller: AppController; retry(): vo
   const alive = useRef(true);
   const initializationAttempt = useRef(0);
   const snapshot = useSyncExternalStore(engine?.subscribe ?? noopSubscribe, engine?.getSnapshot ?? getBootSnapshot);
+  const actions = useMemo(() => engine ? createActionService(engine, configureReminders) : null, [engine]);
 
   useEffect(() => {
     alive.current = true;
@@ -69,18 +71,9 @@ export function useFinanceController(): { controller: AppController; retry(): vo
     catch (error) { engine?.reportError(error); throw error; }
   };
   const dispatch = (action: AppAction): Promise<void> => run(async () => {
-    const current = requireEngine();
-    const previous = current.getSnapshot().state.settings;
-    if (action.type === 'settings.update' && ('morningTime' in action.value || 'eveningTime' in action.value || 'remindersEnabled' in action.value)) {
-      const next = { ...previous, ...action.value };
-      await configureReminders(next.remindersEnabled, next);
-      try { await current.dispatch(action); }
-      catch (error) {
-        try { await configureReminders(previous.remindersEnabled, previous); }
-        catch { current.reportError(new Error('Your settings could not be saved and Android could not restore the previous reminders. Configure reminders again.')); }
-        throw error;
-      }
-    } else await current.dispatch(action);
+    requireEngine();
+    if (!actions) throw new Error('Wait until your records finish loading.');
+    await actions.dispatch(action);
   });
 
   const controller: AppController = {
@@ -98,13 +91,8 @@ export function useFinanceController(): { controller: AppController; retry(): vo
       const current = requireEngine();
       const imported = await pickBackup();
       if (!imported || !(await confirmRestore())) return;
-      const previous = current.getSnapshot().state.settings;
-      await configureReminders(false, previous);
-      try { await current.restore(imported); }
-      catch (error) {
-        await configureReminders(previous.remindersEnabled, previous).catch(() => undefined);
-        throw error;
-      }
+      if (!actions) throw new Error('Wait until your records finish loading.');
+      await actions.restore(imported);
     }),
     createShortcut: () => run(async () => {
       const result = await createPngShortcut();
