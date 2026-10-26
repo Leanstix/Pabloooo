@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Switch, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { AppController } from '../../app/contracts';
 import { Text } from '../components/Text';
@@ -11,17 +11,21 @@ import { useTask } from '../hooks/useTask';
 export function Welcome({ controller }: { controller: AppController }) {
   const { colors } = useTheme();
   const [day, setDay] = useState('1');
+  const [reminders, setReminders] = useState(true);
   const task = useTask();
   function start() {
     const cycleStartDay = Number(day);
     if (!/^\d{1,2}$/.test(day) || cycleStartDay < 1 || cycleStartDay > 31)
       return task.setError('Choose a cycle start day from 1 to 31.');
-    task.run(() =>
-      controller.dispatch({
+    task.run(async () => {
+      await controller.dispatch({
         type: 'settings.update',
         value: { onboardingComplete: true, cycleStartDay },
-      }),
-    );
+      });
+      // Completing setup does not depend on Android granting notification permission.
+      // The controller presents a persistent error banner if scheduling is denied.
+      if (reminders) await controller.setReminders(true).catch(() => undefined);
+    });
   }
   return (
     <ScrollView
@@ -93,6 +97,21 @@ export function Welcome({ controller }: { controller: AppController }) {
         maxLength={2}
         hint="Choose a day from 1 to 31. You can change this anytime."
       />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ flex: 1, gap: 5 }}>
+          <Text weight="600">A morning and evening check-in</Text>
+          <Text size={12} muted>
+            08:00 and 20:00 · Android will ask for notification permission.
+          </Text>
+        </View>
+        <Switch
+          accessibilityLabel="Enable daily check-ins during setup"
+          value={reminders}
+          onValueChange={setReminders}
+          trackColor={{ false: colors.line, true: colors.positive }}
+          thumbColor={colors.accent}
+        />
+      </View>
       {!!task.error && (
         <Text accessibilityRole="alert" color={colors.negative}>
           {task.error}

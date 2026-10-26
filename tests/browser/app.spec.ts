@@ -32,9 +32,22 @@ test('onboarding, entry validation, income and expense reconcile in the live UI'
     .poll(() => page.evaluate(() => window.pablooooTest.state().transactions.length))
     .toBe(2);
   expect(await page.evaluate(() => window.pablooooTest.state().settings.cycleStartDay)).toBe(25);
+  expect(await page.evaluate(() => window.pablooooTest.state().settings.remindersEnabled)).toBe(
+    true,
+  );
   await expect(page.getByText('₦8,749.50', { exact: true })).toBeVisible();
   await page.screenshot({ path: '.expo/ui-preview/home-populated.png' });
   expect(errors).toEqual([]);
+});
+
+test('setup allows notification opt-out without blocking the offline journal', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('switch', { name: 'Enable daily check-ins during setup' }).click();
+  await page.getByRole('button', { name: 'Let’s begin' }).click();
+  await expect(page.getByRole('tab', { name: 'Home', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => window.pablooooTest.state().settings.remindersEnabled)).toBe(
+    false,
+  );
 });
 
 test('insights tolerate bad date input, show hourly chart and generate XLSX', async ({ page }) => {
