@@ -132,3 +132,10 @@ it('applies what-if income and expenses without changing persistent state', () =
   expect(() => plan(state, '2026-10-31', { additionalExpenseKobo: -1 })).toThrow();
   expect(() => plan(state, '2026-10-31', { additionalIncomeKobo: Number.MAX_SAFE_INTEGER })).toThrow(/safe range/);
 });
+
+it('floors daily allowances to kobo and clamps overspent availability to zero', () => {
+  let state = reduceFinance(seed(), { type: 'settings.update', value: { plannedIncomeKobo: 100 } }, now);
+  expect(plan(state, '2026-10-26').dailyAvailableKobo).toBe(16);
+  state = add(state, { amountKobo: 200 });
+  expect(plan(state, '2026-10-26')).toMatchObject({ remainingKobo: -100, dailyAvailableKobo: 0 });
+});
