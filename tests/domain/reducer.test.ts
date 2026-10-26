@@ -79,3 +79,12 @@ it('rejects moving a parent below its child or below an income category', () => 
   expect(() => apply(state, { type: 'category.save', value: { ...value, parentId: 'snacks' } })).toThrow();
   expect(() => apply(state, { type: 'category.save', value: { ...value, parentId: 'category-salary' } })).toThrow();
 });
+
+it('archives child categories and deactivates their recurring rules together', () => {
+  let state = apply(seed(), { type: 'category.save', value: { id: 'snacks', name: 'Snacks', kind: 'expense', parentId: 'category-feeding', color: '#123456', icon: 'cafe', archived: false } });
+  state = apply(state, { type: 'recurring.save', value: { id: 'r1', name: 'Snack box', kind: 'expense', amountKobo: 1000, categoryId: 'snacks', frequency: 'weekly', nextDueDate: '2026-10-26', active: true } });
+  state = apply(state, { type: 'category.archive', id: 'category-feeding' });
+  expect(state.categories.find(row => row.id === 'snacks')?.archived).toBe(true);
+  expect(state.recurringRules[0]?.active).toBe(false);
+  expect(() => apply(state, { type: 'recurring.confirm', id: 'r1', transactionId: 't1', occurredAt: now })).toThrow(/inactive/);
+});
