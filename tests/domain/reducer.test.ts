@@ -155,3 +155,11 @@ it('saves updates and deletes goals without creating fictitious transactions', (
   expect(() => apply(state, { type: 'goal.save', value: { ...value, targetDate: '2027-02-29' } })).toThrow();
   expect(apply(state, { type: 'goal.delete', id: 'g1' }).goals).toEqual([]);
 });
+
+it('updates cycle and planning settings while enforcing valid reminder times', () => {
+  const state = apply(seed(), { type: 'settings.update', value: { cycleStartDay: 31, plannedIncomeKobo: 20000000, theme: 'dark' } });
+  expect(state.settings).toMatchObject({ currency: 'NGN', cycleStartDay: 31, plannedIncomeKobo: 20000000, morningTime: '08:00', theme: 'dark' });
+  expect(() => apply(state, { type: 'settings.update', value: { cycleStartDay: 32 } })).toThrow();
+  expect(() => apply(state, { type: 'settings.update', value: { morningTime: '24:00' } })).toThrow();
+  expect(() => apply(state, { type: 'settings.update', value: { eveningTime: '9:00' } })).toThrow();
+});
