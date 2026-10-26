@@ -55,3 +55,11 @@ it('creates Monday weeks and complete month quarter and year ranges', () => {
   expect(reportRange('quarter', '2026-12-15')).toEqual({ start: iso(2026, 10, 1), end: iso(2027, 1, 1) });
   expect(reportRange('year', '2026-10-26')).toEqual({ start: iso(2026, 1, 1), end: iso(2027, 1, 1) });
 });
+
+it('includes the entire selected last day without including the next midnight', () => {
+  const range = inclusiveRange('2026-10-01', '2026-10-26');
+  expect(inRange(new Date(2026, 9, 26, 23, 59, 59, 999).toISOString(), range)).toBe(true);
+  expect(inRange(new Date(2026, 9, 27).toISOString(), range)).toBe(false);
+  expect(() => inclusiveRange('2026-10-27', '2026-10-26')).toThrow();
+  expect(() => reportRange('custom', '2026-10-26')).toThrow();
+});
