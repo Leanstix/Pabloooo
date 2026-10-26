@@ -46,3 +46,12 @@ it('excludes deleted entries and the exclusive end while including the exact sta
   state = reduceFinance(state, { type: 'transaction.delete', id: 'removed' }, now);
   expect(categoryFrequency(state, 'category-feeding', range)).toEqual({ count: 1, activeDays: 1, averageKobo: 111, averageGapDays: null, recurringCount: 0 });
 });
+
+it('counts actual confirmed links and keeps archived category history available', () => {
+  let state = reduceFinance(fresh(), { type: 'recurring.save', value: { id: 'weekly', name: 'Meal plan', kind: 'expense', amountKobo: 200, categoryId: 'category-feeding', frequency: 'weekly', nextDueDate: '2026-10-01', active: true } }, now);
+  expect(categoryFrequency(state, 'category-feeding', range).count).toBe(0);
+  state = reduceFinance(state, { type: 'recurring.confirm', id: 'weekly', transactionId: 'confirmed', occurredAt: '2026-10-01' }, now);
+  state = add(state, { amountKobo: 400, occurredAt: '2026-10-04' });
+  state = reduceFinance(state, { type: 'category.archive', id: 'category-feeding' }, now);
+  expect(categoryFrequency(state, 'category-feeding', range)).toEqual({ count: 2, activeDays: 2, averageKobo: 300, averageGapDays: 3, recurringCount: 1 });
+});
