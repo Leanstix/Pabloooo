@@ -11,7 +11,7 @@ async function read(state = fixture(), range?: { start: string; end: string }) {
   return { bytes, workbook, files: unzipSync(bytes) };
 }
 describe('offline XLSX export', () => {
-  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-26T12:00:00Z')); });
+  beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-26T12:00:00Z')); });
   afterEach(() => { vi.useRealTimers(); });
   it('opens with a real spreadsheet reader and exposes five deliberate sheets', async () => {
     const { workbook } = await read();
