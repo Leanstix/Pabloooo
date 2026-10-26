@@ -67,7 +67,7 @@ export function recurringSummary(state: FinanceState, range: DateRange): Recurri
     while (epoch(date) < epoch(range.end)) {
       if (++count > 100000 || occurrences.length >= 100000) throw new Error('Recurring range is too large.');
       if (inRange(date, range)) occurrences.push({ ruleId: rule.id, name: rule.name, date, kind: rule.kind, amountKobo: rule.amountKobo });
-      date = nextDueDate(date, rule.frequency, rule.anchorDate);
+      date = nextDueDate(date, rule.frequency, rule.anchorDate ?? rule.nextDueDate);
     }
   }
   occurrences.sort((a, b) => a.date.localeCompare(b.date) || a.ruleId.localeCompare(b.ruleId));

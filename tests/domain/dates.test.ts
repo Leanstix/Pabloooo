@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { transpileModule, ModuleKind, ScriptTarget } from 'typescript';
 import { describe, expect, it } from 'vitest';
-import { isDate, isTimestamp, addDays, addMonths, nextDueDate, cycleRange, cycleKey, reportRange, inclusiveRange, inRange } from '../../src/domain/dates';
+import { isDate, isTimestamp, addMonths, nextDueDate, cycleRange, cycleKey, reportRange, inclusiveRange, inRange } from '../../src/domain/dates';
 
 describe('calendar arithmetic', () => {
   it('validates actual leap days rather than JavaScript date rollover', () => {

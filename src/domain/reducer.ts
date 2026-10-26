@@ -92,7 +92,7 @@ export function reduceFinance(state: FinanceState, action: AppAction, now: Date 
       next = {
         ...state,
         transactions: [...state.transactions, { id: action.transactionId, kind: rule.kind, amountKobo: rule.amountKobo, categoryId: rule.categoryId, note: rule.name, merchant: '', occurredAt: action.occurredAt, recurringId: rule.id, createdAt: at, updatedAt: at, deletedAt: null }],
-        recurringRules: state.recurringRules.map(row => row.id === rule.id ? { ...row, nextDueDate: due, updatedAt: at } : row),
+        recurringRules: state.recurringRules.map(row => row.id === rule.id ? { ...row, nextDueDate: due, anchorDate: row.anchorDate ?? row.nextDueDate, updatedAt: at } : row),
       }; break;
     }
     case 'goal.save': {
