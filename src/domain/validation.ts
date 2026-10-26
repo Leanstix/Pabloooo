@@ -72,6 +72,7 @@ export function validateFinanceState(value: unknown): FinanceState {
     if (!isDate(rule.nextDueDate)) fail('Invalid recurring due date.');
     if (rule.anchorDate !== undefined && !isDate(rule.anchorDate)) fail('Invalid recurring anchor date.');
     bool(rule.active);
+    if (rule.active && categoryMap.get(rule.categoryId)?.archived) fail('Active recurring rule references an archived category.');
   }
   const transactions = rows(state.transactions, 100000, [...common, 'kind', 'amountKobo', 'categoryId', 'note', 'merchant', 'occurredAt', 'recurringId', 'deletedAt'], 'transaction');
   for (const transaction of transactions) {

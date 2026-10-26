@@ -85,3 +85,11 @@ it('rejects prototype-bearing objects and string boolean settings', () => {
   expect(() => validateFinanceState([])).toThrow(/object/);
   expect(() => validateFinanceState({ ...seed(), settings: { ...seed().settings, remindersEnabled: 'false' } })).toThrow(/boolean/);
 });
+
+it('rejects active recurring rules on archived categories but permits inactive history', () => {
+  const state = seed();
+  const categories = state.categories.map(row => row.id === 'category-pleasure' ? { ...row, archived: true } : row);
+  const rule = { id: 'r1', name: 'Membership', kind: 'expense', amountKobo: 1000, categoryId: 'category-pleasure', frequency: 'monthly', nextDueDate: '2026-01-31', active: true, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' };
+  expect(() => validateFinanceState({ ...state, categories, recurringRules: [rule] })).toThrow(/archived category/);
+  expect(() => validateFinanceState({ ...state, categories, recurringRules: [{ ...rule, active: false }] })).not.toThrow();
+});
