@@ -26,3 +26,11 @@ it('edits transaction amount without replacing creation metadata or duplicating 
   expect(state.transactions[0]?.amountKobo).toBe(50000);
   expect(next.revision).toBe(2);
 });
+
+it('rejects nonpositive fractional and unsafe amounts atomically', () => {
+  const state = seed();
+  const before = JSON.stringify(state);
+  for (const amountKobo of [0, -100, 0.5, Number.MAX_SAFE_INTEGER + 1, NaN]) expect(() => apply(state, { type: 'transaction.save', value: entry({ amountKobo }) })).toThrow();
+  expect(JSON.stringify(state)).toBe(before);
+  expect(state.revision).toBe(0);
+});
