@@ -97,3 +97,11 @@ it('excludes paused rules and totals recurring income separately from expense', 
   expect(recurringSummary(state, range)).toMatchObject({ incomeKobo: 100000, expenseKobo: 0, netKobo: 100000 });
   expect(recurringSummary(state, range).occurrences).toHaveLength(1);
 });
+
+it('uses normalized merchant history and frequency before recency', () => {
+  let state = add(add(seed(), { id: 'a', merchant: 'Corner Shop', categoryId: 'category-feeding', occurredAt: '2026-10-01' }), { id: 'b', merchant: 'corner shop', categoryId: 'category-feeding', occurredAt: '2026-10-02' });
+  state = add(state, { id: 'c', merchant: 'CORNER SHOP', categoryId: 'category-pleasure', occurredAt: '2026-10-26' });
+  expect(suggestCategory(state, { note: '', merchant: '  Corner   Shop ', kind: 'expense' })).toBe('category-feeding');
+  expect(suggestCategory(state, { note: '', merchant: 'Corner Shop', kind: 'income' })).toBeNull();
+  expect(suggestCategory(state, { note: '', merchant: '', kind: 'expense' })).toBeNull();
+});
