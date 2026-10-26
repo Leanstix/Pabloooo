@@ -8,6 +8,12 @@ export function addKobo(a: number, b: number): number {
 export function sumKobo(rows: Transaction[]): number { return rows.reduce((sum, row) => addKobo(sum, row.amountKobo), 0); }
 export function validDate(value: unknown, field: string): number {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}(T.*)?$/.test(value) || !Number.isFinite(Date.parse(value))) throw new Error(`Invalid ${field}`);
+  const year = Number(value.slice(0, 4));
+  const month = Number(value.slice(5, 7));
+  const day = Number(value.slice(8, 10));
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1] ?? 0;
+  if (month < 1 || month > 12 || day < 1 || day > days) throw new Error(`Invalid ${field}`);
   return Date.parse(value);
 }
 function amount(value: number, field: string) {

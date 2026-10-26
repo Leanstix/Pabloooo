@@ -29,4 +29,9 @@ describe('export fail-safe input handling', () => {
   it('labels missing categories so active transaction money is retained', () => {
     expect(categoryLabels('missing', [])).toEqual({ parent: 'Unknown category', child: '', full: 'Unknown category' });
   });
+  it('rejects impossible calendar dates instead of silently rolling into another month', async () => {
+    const state = fixture(); state.transactions[0]!.occurredAt = '2026-02-30T00:00:00Z';
+    await expect(generateWorkbook(state)).rejects.toThrow('timestamp');
+    await expect(generateWorkbook(fixture(), { start: '2025-02-29', end: '2025-03-02' })).rejects.toThrow('range start');
+  });
 });
