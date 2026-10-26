@@ -12,8 +12,8 @@
     "lint": "eslint . --max-warnings=0",
     "check": "npm run typecheck && npm run lint && npm test",
     "test:ui": "node scripts/test-ui.mjs",
-    "format": "prettier --write src tests scripts modules App.tsx index.ts app.config.ts *.json *.mjs *.ts .github docs README.md",
-    "format:check": "prettier --check src tests scripts modules App.tsx index.ts app.config.ts *.json *.mjs *.ts .github docs README.md"
+    "format": "prettier --write src tests scripts modules App.tsx index.ts app.config.js *.json *.mjs *.ts .github docs README.md",
+    "format:check": "prettier --check src tests scripts modules App.tsx index.ts app.config.js *.json *.mjs *.ts .github docs README.md"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

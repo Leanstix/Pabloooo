@@ -1,8 +1,13 @@
-import type { ExpoConfig } from 'expo/config';
-
-const config: ExpoConfig = {
+/** @type {import('expo/config').ExpoConfig} */
+const config = {
   name: 'Pabloooo',
-  slug: 'pabloooo',
+  slug: 'pablooo',
+  owner: 'leanstix',
+  extra: {
+    eas: {
+      projectId: '14de39da-4abc-4b9b-947a-9fd85dc07166',
+    },
+  },
   version: '1.0.0',
   orientation: 'portrait',
   platforms: ['android'],
@@ -41,4 +46,4 @@ const config: ExpoConfig = {
   experiments: { reactCompiler: false },
 };
 
-export default config;
+module.exports = config;
