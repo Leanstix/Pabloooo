@@ -27,3 +27,12 @@ it('includes the first local midnight and excludes the next period midnight', ()
   const state = add(add(seed(), { occurredAt: new Date(2026, 9, 1).toISOString(), amountKobo: 123 }), { occurredAt: new Date(2026, 10, 1).toISOString(), amountKobo: 456 });
   expect(summarize(state, range)).toEqual({ incomeKobo: 0, expenseKobo: 123, balanceKobo: -123, count: 1 });
 });
+
+it('rolls subcategory spending into its parent and uses actual income for percentages', () => {
+  let state = reduceFinance(seed(), { type: 'category.save', value: { id: 'snacks', name: 'Snacks', kind: 'expense', parentId: 'category-feeding', color: '#123456', icon: 'cafe', archived: false } }, now);
+  state = add(add(add(state, { kind: 'income', categoryId: 'category-salary', amountKobo: 100000 }), { amountKobo: 50000 }), { categoryId: 'snacks', amountKobo: 75000 });
+  const rows = categoryBreakdown(state, range);
+  expect(rows.find(row => row.categoryId === 'category-feeding')).toMatchObject({ amountKobo: 125000, percentOfIncome: 125 });
+  expect(rows.some(row => row.categoryId === 'snacks')).toBe(false);
+  expect(rows.filter(row => row.kind === 'expense').reduce((sum, row) => sum + row.amountKobo, 0)).toBe(summarize(state, range).expenseKobo);
+});
