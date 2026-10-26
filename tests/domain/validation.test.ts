@@ -62,3 +62,10 @@ it('rejects oversized arrays and excessively long category text', () => {
   expect(() => validateFinanceState({ ...state, categories: state.categories.map((row, i) => i ? row : { ...row, name: 'a'.repeat(101) }) })).toThrow(/name/);
   expect(() => validateFinanceState({ ...state, categories: state.categories.map((row, i) => i ? row : { ...row, color: 'red' }) })).toThrow(/color/);
 });
+
+it('rejects invalid calendar metadata and timestamps before entity creation', () => {
+  const state = seed();
+  for (const updatedAt of ['2026-02-30T00:00:00Z', '2026-01-01', '2025-12-31T23:59:59Z']) {
+    expect(() => validateFinanceState({ ...state, categories: state.categories.map((row, i) => i ? row : { ...row, updatedAt }) })).toThrow();
+  }
+});
