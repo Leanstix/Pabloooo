@@ -63,6 +63,7 @@ export class FinanceEngine {
     const result = this.queue.then(async () => {
       if (!this.snapshot.ready) throw new Error('Wait until your records finish loading.');
       const next = await operation(this.snapshot.state);
+      if (next === this.snapshot.state) return;
       await this.repository.save(next);
       this.update({ state: next });
     });
