@@ -2,14 +2,17 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { createReminderService } from '../core/notifications';
 import { REMINDER_CHANNEL } from '../core/reminderTime';
+import { createNotificationPermissionPreparer } from '../core/notificationPermission';
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }),
+});
+const prepare = createNotificationPermissionPreparer({
+  createChannel: () => Notifications.setNotificationChannelAsync(REMINDER_CHANNEL, { name: 'Daily money check-ins', importance: Notifications.AndroidImportance.DEFAULT, sound: 'default', enableVibrate: true }),
+  currentPermission: () => Notifications.getPermissionsAsync(),
+  requestPermission: () => Notifications.requestPermissionsAsync(),
+});
 const service = createReminderService({
-  async prepare() {
-    if (Platform.OS !== 'android') return false;
-    await Notifications.setNotificationChannelAsync(REMINDER_CHANNEL, { name: 'Daily money check-ins', importance: Notifications.AndroidImportance.DEFAULT, sound: 'default', enableVibrate: true });
-    let permission = await Notifications.getPermissionsAsync();
-    if (!permission.granted && permission.canAskAgain) permission = await Notifications.requestPermissionsAsync();
-    return permission.granted;
-  },
+  prepare: async () => Platform.OS === 'android' && await prepare(),
   async list() {
     return (await Notifications.getAllScheduledNotificationsAsync()).map(item => ({ identifier: item.identifier, restore: item }));
   },
