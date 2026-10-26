@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFinanceController } from './src/app/useFinanceController';
 import { FinanceApp } from './src/ui/FinanceApp';
+import { ErrorBoundary } from './src/app/ErrorBoundary';
 
 function Application() {
   const { controller, fatal, retry } = useFinanceController();
@@ -20,7 +21,7 @@ function Application() {
     <Text style={styles.title}>Pabloooo</Text>
     <Text style={styles.body}>Opening your local money journal…</Text>
   </View>;
-  return <FinanceApp controller={controller} />;
+  return <ErrorBoundary><FinanceApp controller={controller} /></ErrorBoundary>;
 }
 
 export default function App() {
