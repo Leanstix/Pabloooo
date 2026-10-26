@@ -52,4 +52,20 @@ describe('offline XLSX export', () => {
     expect(sheet.getCell('I7').value).toBe('@cmd -1');
     expect(strFromU8(files['xl/worksheets/sheet2.xml']!)).not.toContain('<f>');
   });
+  it('includes the start instant, excludes the end, and excludes tombstones', async () => {
+    const state = fixture();
+    state.transactions = [
+      transaction('before', 'income', 100, 'salary', '2026-09-30T23:59:59.999Z'),
+      transaction('start', 'income', 200, 'salary', '2026-10-01T00:00:00Z'),
+      transaction('inside', 'expense', 50, 'food', '2026-10-01T23:59:59.999Z'),
+      transaction('end', 'expense', 999, 'food', '2026-10-02T00:00:00Z'),
+      { ...transaction('deleted', 'income', 5000, 'salary'), deletedAt: '2026-10-02T00:00:00Z' },
+    ];
+    const { workbook } = await read(state, { start: '2026-10-01T00:00:00Z', end: '2026-10-02T00:00:00Z' });
+    const sheet = workbook.getWorksheet('Transactions')!;
+    expect(sheet.rowCount).toBe(6);
+    expect(sheet.getCell('A5').value).toBe('start');
+    expect(sheet.getCell('A6').value).toBe('inside');
+    expect(workbook.getWorksheet('Overview')!.getCell('B7').result).toBe(1.5);
+  });
 });
