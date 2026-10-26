@@ -17,7 +17,7 @@ export function EntryEditor({ controller, draft, onClose }: { controller: AppCon
   const { colors } = useTheme(); const task = useTask();
   const tx = draft.transaction;
   const [kind, setKind] = useState<EntryKind>(tx?.kind || draft.kind || 'expense'); const [amount, setAmount] = useState(tx ? (tx.amountKobo / 100).toFixed(2) : draft.amount || '');
-  const [categoryId, setCategory] = useState(tx?.categoryId || ''); const [note, setNote] = useState(tx?.note || ''); const [merchant, setMerchant] = useState(tx?.merchant || ''); const [date, setDate] = useState(tx ? localDate(new Date(tx.occurredAt)) : today()); const [time, setTime] = useState(new Date(tx?.occurredAt || Date.now()).toTimeString().slice(0, 5));
+  const [categoryId, setCategory] = useState(tx?.categoryId || ''); const [note, setNote] = useState(tx?.note || ''); const [merchant, setMerchant] = useState(tx?.merchant || ''); const [date, setDate] = useState(tx ? localDate(new Date(tx.occurredAt)) : today()); const [time, setTime] = useState(() => new Date(tx?.occurredAt || Date.now()).toTimeString().slice(0, 5));
   const suggested = suggestCategory(controller.state, { kind, note, merchant });
   function save() {
     const amountKobo = parseMoney(amount);
