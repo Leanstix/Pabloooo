@@ -30,3 +30,12 @@ it('rejects duplicate entity IDs and IDs with path or control characters', () =>
   for (const installationId of ['../secret', '', 'with spaces', '__proto__', 'x\n']) expect(() => validateFinanceState({ ...state, installationId })).toThrow(/ID/);
   expect(() => validateFinanceState({ ...state, categories: state.categories.map((row, i) => i ? row : { ...row, id: 'a/b' }) })).toThrow(/ID/);
 });
+
+it('rejects orphan parents cycles and active children of archived parents', () => {
+  const state = seed();
+  const parent = state.categories[3]!;
+  const child = { ...parent, id: 'child', name: 'Child', parentId: parent.id };
+  expect(() => validateFinanceState({ ...state, categories: [...state.categories, { ...child, parentId: 'missing' }] })).toThrow();
+  expect(() => validateFinanceState({ ...state, categories: [...state.categories, { ...child, parentId: 'child' }] })).toThrow();
+  expect(() => validateFinanceState({ ...state, categories: [...state.categories.map(row => row.id === parent.id ? { ...row, archived: true } : row), child] })).toThrow(/archived parent/);
+});
