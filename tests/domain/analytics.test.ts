@@ -80,3 +80,13 @@ it('counts child expenses against the parent budget and preserves negative remai
   expect(budgetProgress(state, '2026-10-26')).toEqual([{ id: 'b1', categoryId: 'category-feeding', limitKobo: 10000, spentKobo: 15000, remainingKobo: -5000, percent: 150 }]);
   expect(budgetProgress(state, '2026-11-01')).toEqual([]);
 });
+
+it('forecasts confirmed-date anchors across short months without mutating the ledger', () => {
+  const state = reduceFinance(seed(), { type: 'recurring.save', value: { id: 'r1', name: 'Membership', kind: 'expense', amountKobo: 1000, categoryId: 'category-pleasure', frequency: 'monthly', nextDueDate: '2026-01-31', active: true } }, now);
+  const before = JSON.stringify(state);
+  const forecast = recurringSummary(state, reportRange('quarter', '2026-01-01'));
+  expect(forecast.occurrences.map(row => row.date)).toEqual(['2026-01-31', '2026-02-28', '2026-03-31']);
+  expect(forecast).toMatchObject({ incomeKobo: 0, expenseKobo: 3000, netKobo: -3000 });
+  expect(JSON.stringify(state)).toBe(before);
+  expect(state.transactions).toHaveLength(0);
+});
